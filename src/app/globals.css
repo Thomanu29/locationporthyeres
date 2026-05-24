@@ -1,0 +1,52 @@
+@import "tailwindcss";
+
+@theme inline {
+  --color-primary: #1e40af;
+  --color-primary-dark: #1e3a8a;
+  --color-accent: #f59e0b;
+  --color-background: #ffffff;
+  --color-foreground: #171717;
+  --color-muted: #6b7280;
+  --color-border: #e5e7eb;
+  --color-surface: #f9fafb;
+}
+
+body {
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.rdp {
+  --rdp-accent-color: #1e40af;
+  --rdp-background-color: #e0e7ff;
+}
+
+.rdp-selected {
+  background: #1e40af !important;
+  color: white !important;
+  border-radius: 9999px;
+}
+
+.rdp-range-start {
+  background: #1e40af !important;
+  color: white !important;
+  border-radius: 9999px 0 0 9999px !important;
+  position: relative;
+}
+
+.rdp-range-end {
+  background: #1e40af !important;
+  color: white !important;
+  border-radius: 0 9999px 9999px 0 !important;
+}
+
+.rdp-range-middle {
+  background: #dbeafe !important;
+  color: #1e40af !important;
+  border-radius: 0 !important;
+}
+
+.rdp-range-start.rdp-range-end {
+  border-radius: 9999px !important;
+}
