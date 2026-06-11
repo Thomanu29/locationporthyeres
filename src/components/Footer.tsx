@@ -21,8 +21,8 @@ export default function Footer() {
           <h3 className="text-white font-semibold text-lg mb-3">{t('footer.contact')}</h3>
           <div className="flex items-center gap-2 mb-2">
             <Mail className="w-4 h-4 shrink-0" />
-            <a href="mailto:thomasmanuguerra@gmail.com" className="hover:text-white transition">
-              thomasmanuguerra@gmail.com
+            <a href="mailto:locationporthyeres@gmail.com" className="hover:text-white transition">
+              locationporthyeres@gmail.com
             </a>
           </div>
           <div className="flex items-center gap-2">

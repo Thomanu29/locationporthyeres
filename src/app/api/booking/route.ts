@@ -122,14 +122,22 @@ export async function POST(req: NextRequest) {
         {
           price_data: {
             currency: 'eur',
+            product_data: { name: `Linge de lit & serviettes (${price.nights} nuits)` },
+            unit_amount: Math.round((price.linen_fee ?? 0) * 100),
+          },
+          quantity: 1,
+        },
+        {
+          price_data: {
+            currency: 'eur',
             product_data: { name: 'Taxe de séjour' },
             unit_amount: Math.round(price.tourist_tax * 100),
           },
           quantity: 1,
         },
       ],
-      success_url: `${process.env.NEXT_PUBLIC_SITE_URL}/reservation/confirmation?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL}/reservation`,
+      success_url: `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://locationporthyeres.fr'}/reservation/confirmation?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://locationporthyeres.fr'}/reservation`,
     })
 
     await supabaseAdmin

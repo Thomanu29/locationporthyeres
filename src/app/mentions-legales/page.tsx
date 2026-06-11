@@ -19,7 +19,7 @@ export default function MentionsLegales() {
           <p>
             Thomas Manuguerra<br />
             Port de Hyères, 83400 Hyères, Var, France<br />
-            Email : thomasmanuguerra@gmail.com
+            Email : locationporthyeres@gmail.com
           </p>
 
           <h2>Hébergement</h2>
@@ -48,7 +48,7 @@ export default function MentionsLegales() {
           <p>
             Conformément au Règlement Général sur la Protection des Données (RGPD), vous disposez
             d&apos;un droit d&apos;accès, de rectification, d&apos;effacement et de portabilité de vos données.
-            Pour exercer ces droits, contactez-nous à thomasmanuguerra@gmail.com.
+            Pour exercer ces droits, contactez-nous à locationporthyeres@gmail.com.
           </p>
           <p>
             Vos données ne sont jamais transmises à des tiers à des fins commerciales. Les paiements
