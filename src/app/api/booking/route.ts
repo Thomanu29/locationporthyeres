@@ -136,8 +136,8 @@ export async function POST(req: NextRequest) {
           quantity: 1,
         },
       ],
-      success_url: `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://locationporthyeres.fr'}/reservation/confirmation?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${process.env.NEXT_PUBLIC_SITE_URL ?? 'https://locationporthyeres.fr'}/reservation`,
+      success_url: `https://locationporthyeres.fr/reservation/confirmation?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `https://locationporthyeres.fr/reservation`,
     })
 
     await supabaseAdmin
