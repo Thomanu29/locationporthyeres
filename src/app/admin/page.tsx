@@ -211,9 +211,23 @@ function StatCard({ label, value, icon: Icon }: { label: string; value: string; 
 }
 
 function BookingsTab({ token }: { token: string }) {
-  const { data: bookings, loading } = useFetch<Booking[]>('/api/admin/bookings', token)
+  const { data: bookings, loading, refresh: refetch } = useFetch<Booking[]>('/api/admin/bookings', token)
   const [filter, setFilter] = useState<'all' | 'paid' | 'pending' | 'cancelled'>('all')
   const [docs, setDocs] = useState<Record<string, BookingDocument[]>>({})
+  const [deleting, setDeleting] = useState<string | null>(null)
+
+  const handleDelete = async (id: string, name: string) => {
+    if (!confirm(`Supprimer la réservation de ${name} ?`)) return
+    setDeleting(id)
+    try {
+      await fetch(`/api/admin/bookings?id=${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      refetch()
+    } catch { /* ignore */ }
+    setDeleting(null)
+  }
 
   useEffect(() => {
     if (!bookings) return
@@ -264,6 +278,7 @@ function BookingsTab({ token }: { token: string }) {
               <th className="p-3 font-medium">Statut</th>
               <th className="p-3 font-medium">Source</th>
               <th className="p-3 font-medium">Documents</th>
+              <th className="p-3 font-medium w-10"></th>
             </tr>
           </thead>
           <tbody>
@@ -312,6 +327,16 @@ function BookingsTab({ token }: { token: string }) {
                     ) : (
                       <span className="text-xs text-muted">-</span>
                     )}
+                  </td>
+                  <td className="p-3">
+                    <button
+                      onClick={() => handleDelete(b.id, b.guest_name)}
+                      disabled={deleting === b.id}
+                      className="text-red-400 hover:text-red-600 transition disabled:opacity-50"
+                      title="Supprimer"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </td>
                 </tr>
               ))
