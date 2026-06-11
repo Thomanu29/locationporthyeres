@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { DayPicker, type DateRange } from 'react-day-picker'
 import 'react-day-picker/style.css'
-import { fr } from 'date-fns/locale'
+import { fr as frLocale, enUS as enLocale } from 'date-fns/locale'
 import { format, differenceInDays, addDays } from 'date-fns'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
@@ -22,19 +22,23 @@ import {
 } from 'lucide-react'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
+import RentalContract from '@/components/RentalContract'
+import { useTranslation } from '@/lib/i18n'
 import type { PricingRule, PriceCalculation } from '@/lib/types'
 
-const formSchema = z.object({
-  guest_name: z.string().min(2, 'Nom requis (2 caractères min.)'),
-  guest_email: z.string().email('Email invalide'),
-  guest_phone: z.string().optional(),
-  notes: z.string().optional(),
-  marketing_consent: z.boolean().optional(),
-})
-
-type FormData = z.infer<typeof formSchema>
-
 export default function ReservationPage() {
+  const { t, tArray, locale } = useTranslation()
+
+  const formSchema = z.object({
+    guest_name: z.string().min(2, t('reservation.validation.nameRequired')),
+    guest_email: z.string().email(t('reservation.validation.emailInvalid')),
+    guest_phone: z.string().optional(),
+    notes: z.string().optional(),
+    marketing_consent: z.boolean().optional(),
+  })
+
+  type FormData = z.infer<typeof formSchema>
+
   const [unavailableDates, setUnavailableDates] = useState<Date[]>([])
   const [pricingRules, setPricingRules] = useState<PricingRule[]>([])
   const [dateRange, setDateRange] = useState<DateRange | undefined>()
@@ -43,6 +47,8 @@ export default function ReservationPage() {
   const [priceError, setPriceError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+  const [contractOpen, setContractOpen] = useState(false)
+  const [contractAccepted, setContractAccepted] = useState(false)
 
   const {
     register,
@@ -88,18 +94,18 @@ export default function ReservationPage() {
       const data = await res.json()
 
       if (!res.ok) {
-        setPriceError(data.error || 'Erreur de calcul')
+        setPriceError(data.error || t('reservation.validation.calcError'))
         setPrice(null)
       } else {
         setPrice(data)
         setPriceError(null)
       }
     } catch {
-      setPriceError('Erreur de connexion')
+      setPriceError(t('reservation.validation.connectionError'))
     } finally {
       setLoading(false)
     }
-  }, [dateRange, guestCount])
+  }, [dateRange, guestCount, t])
 
   useEffect(() => {
     fetchPrice()
@@ -131,10 +137,10 @@ export default function ReservationPage() {
       if (data.checkout_url) {
         window.location.href = data.checkout_url
       } else {
-        alert(data.error || 'Erreur lors de la réservation')
+        alert(data.error || t('reservation.validation.bookingError'))
       }
     } catch {
-      alert('Erreur de connexion')
+      alert(t('reservation.validation.connectionError'))
     } finally {
       setSubmitting(false)
     }
@@ -158,15 +164,24 @@ export default function ReservationPage() {
     return checkMMDD >= fromMMDD || checkMMDD <= toMMDD
   })
 
+  const dateLocale = locale === 'fr' ? frLocale : enLocale
+  const rulesItems = tArray('reservation.rules.items')
+
+  // Contract labels (kept in French for legal compliance, with English translation for the checkbox label)
+  const contractCheckboxLabel = locale === 'en'
+    ? 'I have read and accept the'
+    : "J'ai lu et j'accepte le"
+  const contractLinkLabel = locale === 'en'
+    ? 'rental agreement'
+    : 'contrat de location'
+
   return (
     <>
       <Header variant="solid" />
       <main className="flex-1 py-10">
         <div className="max-w-6xl mx-auto px-4">
-          <h1 className="text-3xl md:text-4xl font-bold mb-2">Réserver votre séjour</h1>
-          <p className="text-muted mb-8">
-            Appartement du Port · Hyères · Réservation directe sans frais
-          </p>
+          <h1 className="text-3xl md:text-4xl font-bold mb-2">{t('reservation.title')}</h1>
+          <p className="text-muted mb-8">{t('reservation.subtitle')}</p>
 
           <div className="grid lg:grid-cols-3 gap-8">
             {/* Left: Calendar + Form */}
@@ -175,13 +190,13 @@ export default function ReservationPage() {
               <div className="bg-white border border-border rounded-xl p-6">
                 <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
                   <Calendar className="w-5 h-5 text-primary" />
-                  Choisissez vos dates
+                  {t('reservation.dates.title')}
                 </h2>
                 <DayPicker
                   mode="range"
                   selected={dateRange}
                   onSelect={setDateRange}
-                  locale={fr}
+                  locale={dateLocale}
                   numberOfMonths={2}
                   disabled={[
                     { before: addDays(new Date(), 1) },
@@ -196,7 +211,7 @@ export default function ReservationPage() {
                 />
                 {currentRule && (
                   <p className="text-sm text-muted mt-2">
-                    Période : {currentRule.label} · {currentRule.price_per_night}€/nuit · min. {currentRule.min_nights} nuits
+                    {t('reservation.dates.period', { label: currentRule.label, price: currentRule.price_per_night, nights: currentRule.min_nights })}
                   </p>
                 )}
               </div>
@@ -205,7 +220,7 @@ export default function ReservationPage() {
               <div className="bg-white border border-border rounded-xl p-6">
                 <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
                   <Users className="w-5 h-5 text-primary" />
-                  Nombre de voyageurs
+                  {t('reservation.guests.title')}
                 </h2>
                 <div className="flex items-center gap-4">
                   {[1, 2, 3, 4].map((n) => (
@@ -231,28 +246,28 @@ export default function ReservationPage() {
               >
                 <h2 className="text-xl font-semibold mb-4 flex items-center gap-2">
                   <CreditCard className="w-5 h-5 text-primary" />
-                  Vos informations
+                  {t('reservation.form.title')}
                 </h2>
 
                 <div className="grid md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium mb-1">Nom complet *</label>
+                    <label className="block text-sm font-medium mb-1">{t('reservation.form.fullName')}</label>
                     <input
                       {...register('guest_name')}
                       className="w-full border border-border rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary"
-                      placeholder="Jean Dupont"
+                      placeholder={t('reservation.form.fullNamePlaceholder')}
                     />
                     {errors.guest_name && (
                       <p className="text-red-500 text-sm mt-1">{errors.guest_name.message}</p>
                     )}
                   </div>
                   <div>
-                    <label className="block text-sm font-medium mb-1">Email *</label>
+                    <label className="block text-sm font-medium mb-1">{t('reservation.form.email')}</label>
                     <input
                       {...register('guest_email')}
                       type="email"
                       className="w-full border border-border rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary"
-                      placeholder="jean@email.com"
+                      placeholder={t('reservation.form.emailPlaceholder')}
                     />
                     {errors.guest_email && (
                       <p className="text-red-500 text-sm mt-1">{errors.guest_email.message}</p>
@@ -261,23 +276,24 @@ export default function ReservationPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-1">Téléphone</label>
+                  <label className="block text-sm font-medium mb-1">{t('reservation.form.phone')}</label>
                   <input
                     {...register('guest_phone')}
                     type="tel"
                     className="w-full border border-border rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary"
-                    placeholder="+33 6 00 00 00 00"
+                    placeholder={t('reservation.form.phonePlaceholder')}
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium mb-1">Message (optionnel)</label>
+                  <label className="block text-sm font-medium mb-1">{t('reservation.form.message')}</label>
                   <textarea
                     {...register('notes')}
                     rows={3}
                     className="w-full border border-border rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-primary resize-none"
-                    placeholder="Heure d'arrivée, demandes spéciales..."
+                    placeholder={t('reservation.form.messagePlaceholder')}
                   />
+                  <p className="text-xs text-muted mt-1">{t('reservation.form.messageHint')}</p>
                 </div>
 
                 <label className="flex items-start gap-2 cursor-pointer">
@@ -287,31 +303,50 @@ export default function ReservationPage() {
                     className="mt-1 rounded border-border"
                   />
                   <span className="text-sm text-muted">
-                    J&apos;accepte de recevoir des offres et actualités par email (RGPD — désinscription possible à tout moment)
+                    {t('reservation.form.marketingConsent')}
+                  </span>
+                </label>
+
+                <label className="flex items-start gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={contractAccepted}
+                    onChange={(e) => setContractAccepted(e.target.checked)}
+                    className="mt-1 rounded border-border"
+                  />
+                  <span className="text-sm">
+                    {contractCheckboxLabel}{' '}
+                    <button
+                      type="button"
+                      onClick={() => setContractOpen(true)}
+                      className="text-primary underline hover:text-primary-dark"
+                    >
+                      {contractLinkLabel}
+                    </button>
                   </span>
                 </label>
 
                 <button
                   type="submit"
-                  disabled={!dateRange?.from || !dateRange?.to || !price || submitting || !!priceError}
+                  disabled={!dateRange?.from || !dateRange?.to || !price || submitting || !!priceError || !contractAccepted}
                   className="w-full bg-primary hover:bg-primary-dark disabled:bg-gray-300 text-white font-semibold py-3.5 rounded-lg text-lg transition flex items-center justify-center gap-2"
                 >
                   {submitting ? (
                     <>
                       <Loader2 className="w-5 h-5 animate-spin" />
-                      Redirection vers le paiement...
+                      {t('reservation.form.paying')}
                     </>
                   ) : (
                     <>
                       <CreditCard className="w-5 h-5" />
-                      Payer {price ? `${price.total_amount.toFixed(2)}€` : ''}
+                      {t('reservation.form.payButton', { amount: price ? `${price.total_amount.toFixed(2)}€` : '' })}
                     </>
                   )}
                 </button>
 
                 <div className="flex items-center justify-center gap-4 mt-4 text-xs text-muted">
-                  <span className="flex items-center gap-1"><Lock className="w-3.5 h-3.5" />SSL chiffré</span>
-                  <span className="flex items-center gap-1"><ShieldCheck className="w-3.5 h-3.5" />Paiement sécurisé par Stripe</span>
+                  <span className="flex items-center gap-1"><Lock className="w-3.5 h-3.5" />{t('reservation.form.sslEncrypted')}</span>
+                  <span className="flex items-center gap-1"><ShieldCheck className="w-3.5 h-3.5" />{t('reservation.form.securePayment')}</span>
                 </div>
               </form>
             </div>
@@ -320,7 +355,7 @@ export default function ReservationPage() {
             <div className="lg:sticky lg:top-24 space-y-6">
               {/* Price Summary */}
               <div className="bg-white border border-border rounded-xl p-6">
-                <h3 className="font-semibold text-lg mb-4">Récapitulatif</h3>
+                <h3 className="font-semibold text-lg mb-4">{t('reservation.summary.title')}</h3>
 
                 {priceError && (
                   <div className="bg-red-50 border border-red-200 rounded-lg p-3 mb-4 text-red-700 text-sm">
@@ -337,32 +372,36 @@ export default function ReservationPage() {
                 {price && !loading && (
                   <div className="space-y-3">
                     <div className="flex justify-between">
-                      <span>Hébergement ({price.nights} nuits)</span>
+                      <span>{t('reservation.summary.accommodation', { nights: price.nights })}</span>
                       <span>{(price.accommodation_total ?? price.price_per_night * price.nights).toFixed(2)}€</span>
                     </div>
                     <div className="flex justify-between text-xs text-muted">
-                      <span>~{price.price_per_night}€/nuit en moyenne</span>
+                      <span>{t('reservation.summary.avgPerNight', { price: price.price_per_night })}</span>
                       <span></span>
                     </div>
                     <div className="flex justify-between">
-                      <span>Frais de ménage</span>
+                      <span>{t('reservation.summary.cleaningFee')}</span>
                       <span>{price.cleaning_fee}€</span>
                     </div>
                     <div className="flex justify-between">
-                      <span>Taxe de séjour</span>
+                      <span>{t('reservation.summary.linenFee', { nights: price.nights })}</span>
+                      <span>{price.linen_fee}€</span>
+                    </div>
+                    <div className="flex justify-between">
+                      <span>{t('reservation.summary.touristTax')}</span>
                       <span>{price.tourist_tax.toFixed(2)}€</span>
                     </div>
                     <div className="border-t border-border pt-3 flex justify-between font-bold text-lg">
-                      <span>Total</span>
+                      <span>{t('reservation.summary.total')}</span>
                       <span>{price.total_amount.toFixed(2)}€</span>
                     </div>
                     <div className="mt-3 pt-3 border-t border-border">
                       <div className="flex justify-between text-sm text-muted">
-                        <span>Caution (non débitée)</span>
+                        <span>{t('reservation.summary.deposit')}</span>
                         <span>{price.deposit_amount ?? 750}€</span>
                       </div>
                       <p className="text-xs text-muted mt-1">
-                        Empreinte bancaire de {price.deposit_amount ?? 750}€ — restituée sous 7 jours après le départ si aucun dommage constaté.
+                        {t('reservation.summary.depositInfo', { amount: price.deposit_amount ?? 750 })}
                       </p>
                     </div>
                   </div>
@@ -370,15 +409,15 @@ export default function ReservationPage() {
 
                 {!price && !loading && !priceError && (
                   <p className="text-muted text-sm">
-                    Sélectionnez vos dates pour voir le prix.
+                    {t('reservation.summary.selectDates')}
                   </p>
                 )}
 
                 {dateRange?.from && dateRange?.to && (
                   <div className="mt-4 pt-4 border-t border-border text-sm text-muted space-y-1">
-                    <p>Arrivée : {format(dateRange.from, 'dd MMMM yyyy', { locale: fr })}</p>
-                    <p>Départ : {format(dateRange.to, 'dd MMMM yyyy', { locale: fr })}</p>
-                    <p>{nights} nuit{nights > 1 ? 's' : ''} · {guestCount} voyageur{guestCount > 1 ? 's' : ''}</p>
+                    <p>{t('reservation.summary.checkIn')} : {format(dateRange.from, 'dd MMMM yyyy', { locale: dateLocale })}</p>
+                    <p>{t('reservation.summary.checkOut')} : {format(dateRange.to, 'dd MMMM yyyy', { locale: dateLocale })}</p>
+                    <p>{t('reservation.summary.nightCount', { nights, plural: nights > 1 ? 's' : '', guests: guestCount, guestPlural: guestCount > 1 ? 's' : '' })}</p>
                   </div>
                 )}
               </div>
@@ -387,33 +426,31 @@ export default function ReservationPage() {
               <div className="bg-surface rounded-xl p-6 space-y-4">
                 <h3 className="font-semibold text-lg flex items-center gap-2">
                   <Info className="w-5 h-5 text-primary" />
-                  Infos pratiques
+                  {t('reservation.info.title')}
                 </h3>
                 <div className="space-y-3 text-sm">
                   <div className="flex items-center gap-2">
                     <Clock className="w-4 h-4 text-muted shrink-0" />
-                    <span>Arrivée : 15h-17h · Départ : avant 9h</span>
+                    <span>{t('reservation.info.checkTimes')}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <PawPrint className="w-4 h-4 text-muted shrink-0" />
-                    <span>Animaux interdits</span>
+                    <span>{t('reservation.info.noPets')}</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <CigaretteOff className="w-4 h-4 text-muted shrink-0" />
-                    <span>Logement strictement non-fumeur</span>
+                    <span>{t('reservation.info.noSmoking')}</span>
                   </div>
                 </div>
               </div>
 
-              {/* Règlement */}
+              {/* Rules */}
               <div className="bg-amber-50 border border-amber-200 rounded-xl p-6 space-y-3">
-                <h3 className="font-semibold text-sm">Règlement intérieur</h3>
+                <h3 className="font-semibold text-sm">{t('reservation.rules.title')}</h3>
                 <ul className="text-xs text-amber-800 space-y-2">
-                  <li>Maximum 4 voyageurs. Fêtes, soirées et visiteurs non déclarés interdits.</li>
-                  <li>Non-fumeur : des frais de désodorisation (500€ min.) seront facturés en cas de non-respect.</li>
-                  <li>Animaux interdits quelle que soit leur taille.</li>
-                  <li>Horaires calmes : 22h - 9h.</li>
-                  <li>Caution de 750€ par empreinte bancaire, restituée sous 7 jours après le départ.</li>
+                  {rulesItems.map((item, i) => (
+                    <li key={i}>{item}</li>
+                  ))}
                 </ul>
               </div>
             </div>
@@ -421,6 +458,16 @@ export default function ReservationPage() {
         </div>
       </main>
       <Footer />
+      <RentalContract
+        open={contractOpen}
+        onClose={() => setContractOpen(false)}
+        onAccept={() => setContractAccepted(true)}
+        checkIn={dateRange?.from ? format(dateRange.from, 'dd MMMM yyyy', { locale: frLocale }) : undefined}
+        checkOut={dateRange?.to ? format(dateRange.to, 'dd MMMM yyyy', { locale: frLocale }) : undefined}
+        guestCount={guestCount}
+        totalAmount={price?.total_amount}
+        nights={nights}
+      />
     </>
   )
 }

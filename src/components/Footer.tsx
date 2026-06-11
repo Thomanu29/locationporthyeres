@@ -1,19 +1,24 @@
+'use client'
+
 import { MapPin, Phone, Mail } from 'lucide-react'
+import { useTranslation } from '@/lib/i18n'
 
 export default function Footer() {
+  const { t } = useTranslation()
+
   return (
     <footer className="bg-gray-900 text-gray-300 py-12">
       <div className="max-w-6xl mx-auto px-4 grid md:grid-cols-3 gap-8">
         <div>
-          <h3 className="text-white font-semibold text-lg mb-3">Appartement du Port</h3>
+          <h3 className="text-white font-semibold text-lg mb-3">{t('header.home')}</h3>
           <div className="flex items-start gap-2 mb-2">
             <MapPin className="w-4 h-4 mt-1 shrink-0" />
-            <span>Port de Hyères, 83400 Hyères, Var, France</span>
+            <span>{t('footer.address')}</span>
           </div>
-          <p className="text-sm text-gray-400">N° enregistrement meublé de tourisme : en cours</p>
+          <p className="text-sm text-gray-400">{t('footer.registration')}</p>
         </div>
         <div>
-          <h3 className="text-white font-semibold text-lg mb-3">Contact</h3>
+          <h3 className="text-white font-semibold text-lg mb-3">{t('footer.contact')}</h3>
           <div className="flex items-center gap-2 mb-2">
             <Mail className="w-4 h-4 shrink-0" />
             <a href="mailto:thomasmanuguerra@gmail.com" className="hover:text-white transition">
@@ -28,19 +33,19 @@ export default function Footer() {
           </div>
         </div>
         <div>
-          <h3 className="text-white font-semibold text-lg mb-3">Liens</h3>
+          <h3 className="text-white font-semibold text-lg mb-3">{t('footer.links')}</h3>
           <ul className="space-y-2">
             <li>
-              <a href="/reservation" className="hover:text-white transition">Réserver</a>
+              <a href="/reservation" className="hover:text-white transition">{t('footer.book')}</a>
             </li>
             <li>
-              <a href="/mentions-legales" className="hover:text-white transition">Mentions légales</a>
+              <a href="/mentions-legales" className="hover:text-white transition">{t('footer.legal')}</a>
             </li>
           </ul>
         </div>
       </div>
       <div className="max-w-6xl mx-auto px-4 mt-8 pt-8 border-t border-gray-700 text-center text-sm text-gray-500">
-        &copy; {new Date().getFullYear()} Appartement du Port · Hyères. Tous droits réservés.
+        &copy; {new Date().getFullYear()} {t('footer.copyright')}
       </div>
     </footer>
   )

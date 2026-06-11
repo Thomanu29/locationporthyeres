@@ -1,0 +1,297 @@
+{
+  "header": {
+    "home": "Appartement du Port",
+    "amenities": "Amenities",
+    "reviews": "Reviews",
+    "faq": "FAQ",
+    "contact": "Contact",
+    "book": "Book now",
+    "openMenu": "Open menu",
+    "closeMenu": "Close menu"
+  },
+  "footer": {
+    "address": "Port de Hyères, 83400 Hyères, Var, France",
+    "registration": "Tourism rental registration number: pending",
+    "contact": "Contact",
+    "links": "Links",
+    "book": "Book now",
+    "legal": "Legal notice",
+    "copyright": "Appartement du Port · Hyères. All rights reserved."
+  },
+  "home": {
+    "hero": {
+      "title": "Appartement du Port",
+      "subtitle": "On the port of Hyères",
+      "features": "Renovated 1BR 45m² · Terrace · Secure parking · Air conditioning",
+      "priceFrom": "From {price}€ / night",
+      "ctaBook": "Check availability",
+      "ctaDiscover": "Discover"
+    },
+    "amenities": {
+      "title": "All the comfort for your holiday",
+      "parking": "Secure parking",
+      "parkingDesc": "Private spot 50m from the building",
+      "ac": "Air conditioning",
+      "acDesc": "Living room + bedroom",
+      "beds": "Flexible sleeping",
+      "bedsDesc": "1 queen bed or 2 single beds (bedroom)",
+      "wifi": "Wi-Fi",
+      "wifiDesc": "High-speed internet",
+      "terrace": "Terrace",
+      "terraceDesc": "For your relaxation",
+      "coffee": "Coffee machine",
+      "coffeeDesc": "Fully equipped kitchen",
+      "washer": "Washing machine",
+      "washerDesc": "In the apartment",
+      "ferry": "Island ferries",
+      "ferryDesc": "Port 20m away, Porquerolles accessible"
+    },
+    "description": {
+      "title": "The apartment",
+      "p1": "Air-conditioned 1BR apartment with terrace on the port of Hyères, 20m from restaurants and 500m from the beach. Secure private parking + Wi-Fi — everything is walkable for a hassle-free stay.",
+      "p2": "This beautiful 45m² fully renovated apartment is located on the 3rd floor of a 5-story building with elevator. Completely refurbished, it combines comfort, modernity and an exceptional location.",
+      "list": [
+        "Bright living room with comfortable sofa bed 140x190",
+        "Flexible bedroom: 1 queen bed (160x200) or 2 single beds (80x200)",
+        "Fully equipped kitchen with coffee machine",
+        "Modern bathroom",
+        "Air conditioning in living room and bedroom",
+        "Bed linen and towels provided",
+        "Terrace for your relaxation"
+      ]
+    },
+    "location": {
+      "title": "Perfect location",
+      "intro": "In the heart of Hyères, everything is walkable and accessible by bus: beaches, restaurants, port and shops. Ideal for holidays or business trips.",
+      "port": "Port & restaurants",
+      "shops": "Shops",
+      "beaches": "Beaches",
+      "airport": "Toulon-Hyères Airport",
+      "center": "Hyères city center"
+    },
+    "gallery": {
+      "title": "Photo gallery",
+      "placeholders": ["Living room", "Bedroom", "Terrace", "Kitchen", "Bathroom", "Port view"]
+    },
+    "reviews": {
+      "title": "What our guests say",
+      "empty": "Guest reviews will appear here soon."
+    },
+    "cta": {
+      "title": "Book direct · 0% commission",
+      "subtitle": "No platform fees, you pay the fair price.",
+      "button": "Book now"
+    }
+  },
+  "reservation": {
+    "title": "Book your stay",
+    "subtitle": "Appartement du Port · Hyères · Direct booking, no fees",
+    "dates": {
+      "title": "Choose your dates",
+      "period": "Season: {label} · {price}€/night · min. {nights} nights"
+    },
+    "guests": {
+      "title": "Number of guests"
+    },
+    "form": {
+      "title": "Your information",
+      "fullName": "Full name *",
+      "fullNamePlaceholder": "John Smith",
+      "email": "Email *",
+      "emailPlaceholder": "john@email.com",
+      "phone": "Phone",
+      "phonePlaceholder": "+33 6 00 00 00 00",
+      "message": "Message (optional)",
+      "messagePlaceholder": "Arrival time, bed preference (queen or 2 singles)...",
+      "messageHint": "Bed linen and towels provided. Please let us know if you prefer a queen bed or 2 single beds in the bedroom.",
+      "marketingConsent": "I agree to receive offers and updates by email (GDPR — you can unsubscribe at any time)",
+      "payButton": "Pay {amount}",
+      "paying": "Redirecting to payment...",
+      "sslEncrypted": "SSL encrypted",
+      "securePayment": "Secure payment by Stripe"
+    },
+    "summary": {
+      "title": "Summary",
+      "accommodation": "Accommodation ({nights} nights)",
+      "avgPerNight": "~{price}€/night on average",
+      "cleaningFee": "Cleaning fee",
+      "linenFee": "Bed linen & towels ({nights} nights)",
+      "touristTax": "Tourist tax",
+      "total": "Total",
+      "deposit": "Security deposit (not charged)",
+      "depositInfo": "A hold of {amount}€ will be placed on your card — released within 7 days after departure if no damage.",
+      "selectDates": "Select your dates to see the price.",
+      "checkIn": "Check-in",
+      "checkOut": "Check-out",
+      "nightCount": "{nights} night{plural} · {guests} guest{guestPlural}"
+    },
+    "info": {
+      "title": "Practical info",
+      "checkTimes": "Check-in: 3pm-5pm · Check-out: before 10am",
+      "noPets": "No pets allowed",
+      "noSmoking": "Strictly non-smoking"
+    },
+    "rules": {
+      "title": "House rules",
+      "items": [
+        "Maximum 4 guests. Parties, events and undeclared visitors are prohibited.",
+        "Non-smoking: deodorizing fees (minimum 500€) will be charged if not respected.",
+        "No pets allowed regardless of size.",
+        "Quiet hours: 10pm - 9am.",
+        "Security deposit of 750€ by card hold, released within 7 days after departure."
+      ]
+    },
+    "validation": {
+      "nameRequired": "Name required (min. 2 characters)",
+      "emailInvalid": "Invalid email",
+      "calcError": "Calculation error",
+      "connectionError": "Connection error",
+      "bookingError": "Error during booking"
+    }
+  },
+  "faq": {
+    "pageTitle": "Frequently asked questions",
+    "pageSubtitle": "Everything you need to know before your stay at Appartement du Port.",
+    "moreQuestions": "Have more questions?",
+    "moreQuestionsText": "Feel free to contact us, we will respond as soon as possible.",
+    "contactUs": "Contact us",
+    "sections": [
+      {
+        "title": "Booking & payment",
+        "items": [
+          {
+            "question": "How do I book?",
+            "answer": "Select your dates, fill in the form and pay online by credit card. You will receive a confirmation email immediately."
+          },
+          {
+            "question": "What payment methods do you accept?",
+            "answer": "Credit card (Visa, Mastercard, American Express) via Stripe, a 100% secure platform."
+          },
+          {
+            "question": "Can I cancel my booking?",
+            "answer": "Free cancellation up to 30 days before arrival. Between 30 and 14 days: 50% refund. Less than 14 days: non-refundable."
+          },
+          {
+            "question": "What is the 750€ security deposit?",
+            "answer": "A hold of 750€ is placed on your card at the time of payment. It is not charged. It is released within 7 days after your departure if no damage is found."
+          }
+        ]
+      },
+      {
+        "title": "The apartment",
+        "items": [
+          {
+            "question": "What is the apartment's capacity?",
+            "answer": "Maximum 4 people. The apartment has a bedroom with a flexible bed (1 queen 160×200 or 2 singles 80×200) and a sofa bed in the living room."
+          },
+          {
+            "question": "Is there air conditioning?",
+            "answer": "Yes, in the living room and bedroom."
+          },
+          {
+            "question": "Is parking included?",
+            "answer": "Yes, a secure private parking space is included, 50m from the building."
+          },
+          {
+            "question": "Is Wi-Fi available?",
+            "answer": "Yes, high-speed internet included."
+          },
+          {
+            "question": "Is there an elevator?",
+            "answer": "Yes, 3rd floor with elevator."
+          }
+        ]
+      },
+      {
+        "title": "Arrival & departure",
+        "items": [
+          {
+            "question": "What are the check-in/check-out times?",
+            "answer": "Check-in between 3pm and 5pm. Check-out before 10am."
+          },
+          {
+            "question": "How do I access the apartment?",
+            "answer": "Detailed access information (code, floor, parking) will be sent to you by email 48 hours before your arrival."
+          },
+          {
+            "question": "Where do I park?",
+            "answer": "Private parking is included. The exact location will be communicated before your arrival."
+          }
+        ]
+      },
+      {
+        "title": "Rules & conditions",
+        "items": [
+          {
+            "question": "Are pets allowed?",
+            "answer": "No, pets are not allowed regardless of their size."
+          },
+          {
+            "question": "Is smoking allowed?",
+            "answer": "No, the apartment is strictly non-smoking. Deodorizing fees (minimum 500€) will be charged if not respected."
+          },
+          {
+            "question": "Are there quiet hours?",
+            "answer": "Yes, quiet hours are from 10pm to 9am."
+          },
+          {
+            "question": "Are parties allowed?",
+            "answer": "No, parties, events and undeclared visitors are prohibited."
+          }
+        ]
+      },
+      {
+        "title": "Nearby",
+        "items": [
+          {
+            "question": "How do I get to Porquerolles?",
+            "answer": "Ferries depart from the port (20m from the apartment) throughout the day. Crossing ~20 min. Book in advance during peak season at tlv-tvm.com."
+          },
+          {
+            "question": "Where are the nearest beaches?",
+            "answer": "Almanarre beach is 500m on foot."
+          },
+          {
+            "question": "Are there shops nearby?",
+            "answer": "Yes, restaurants and shops are 20m away (on the port). Hyères city center is 5.6km away."
+          },
+          {
+            "question": "How do I get from the airport?",
+            "answer": "Toulon-Hyères airport is only 1.5km away."
+          }
+        ]
+      }
+    ]
+  },
+  "contact": {
+    "title": "Contact us",
+    "form": {
+      "name": "Name *",
+      "email": "Email *",
+      "subject": "Subject",
+      "message": "Message *",
+      "send": "Send",
+      "sending": "Sending..."
+    },
+    "chat": {
+      "conversation": "Conversation",
+      "newConversation": "New conversation",
+      "placeholder": "Your message...",
+      "loading": "Loading..."
+    }
+  },
+  "notFound": {
+    "title": "Page not found",
+    "message": "The page you are looking for does not exist or has been moved.",
+    "home": "Back to home",
+    "book": "Book now"
+  },
+  "mentionsLegales": {
+    "englishNote": "This page contains the legal notices required by French law and is only available in French."
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "An error occurred",
+    "connectionError": "Connection error"
+  }
+}

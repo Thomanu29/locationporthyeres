@@ -4,6 +4,7 @@ import { formatLocalDate } from './date-utils'
 
 const CLEANING_FEE = 60
 const TOURIST_TAX_PER_PERSON_PER_NIGHT = 2.5
+const LINEN_FEE_PER_NIGHT = 4
 const DEPOSIT_AMOUNT = 750
 
 export async function getPricingRules(): Promise<PricingRule[]> {
@@ -73,13 +74,15 @@ export function calculatePrice(
   }
 
   const avgPricePerNight = nights > 0 ? Math.round(accommodationTotal / nights) : 0
+  const linenFee = LINEN_FEE_PER_NIGHT * nights
   const touristTax = TOURIST_TAX_PER_PERSON_PER_NIGHT * guestCount * nights
-  const totalAmount = accommodationTotal + CLEANING_FEE + touristTax
+  const totalAmount = accommodationTotal + CLEANING_FEE + linenFee + touristTax
 
   return {
     price_per_night: avgPricePerNight,
     nights,
     cleaning_fee: CLEANING_FEE,
+    linen_fee: linenFee,
     tourist_tax: touristTax,
     total_amount: totalAmount,
     min_nights: rule.min_nights,

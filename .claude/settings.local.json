@@ -6,7 +6,15 @@
       "mcp__Claude_in_Chrome__tabs_context_mcp",
       "mcp__Claude_Preview__preview_start",
       "Bash(git init *)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(npx vercel *)",
+      "Bash(git commit -m ' *)",
+      "Bash(git config *)",
+      "Bash(vercel --yes)",
+      "Bash(vercel inspect *)",
+      "Bash(vercel logs *)",
+      "Bash(vercel env *)",
+      "Bash(xxd -l 200 -s 3300 \"C:\\\\Users\\\\tmanuguerra\\\\site-code2\\\\src\\\\components\\\\FaqAccordion.tsx\")"
     ]
   }
 }

@@ -51,11 +51,11 @@ export async function sendConfirmationEmail(data: BookingEmailData) {
         <div style="background: #f0f9ff; padding: 16px; border-radius: 8px; margin-top: 24px;">
           <h3 style="margin: 0 0 8px; color: #1e40af;">Infos pratiques</h3>
           <ul style="margin: 0; padding-left: 20px; color: #374151;">
-            <li>Check-in : à partir de 16h</li>
-            <li>Check-out : avant 11h</li>
+            <li>Check-in : entre 15h et 17h</li>
+            <li>Check-out : avant 10h</li>
             <li>Parking privé inclus</li>
+            <li>Linge de lit et serviettes fournis</li>
             <li>Climatisation salon + chambre</li>
-            <li>Navettes Porquerolles à 5 min à pied</li>
           </ul>
         </div>
 
@@ -96,40 +96,75 @@ export async function sendOwnerNotification(data: BookingEmailData) {
 
   await resend.emails.send({
     from: 'Appartement du Port <noreply@locationporthyeres.fr>',
-    to: process.env.NOTIFICATION_EMAIL!,
+    to: process.env.NOTIFICATION_EMAIL ?? 'locationporthyeres@gmail.com',
     subject: `Nouvelle réservation · ${safeName} · ${formatDate(checkIn)}`,
     html,
   })
 }
 
 export async function sendReminderEmail(guestName: string, guestEmail: string, checkIn: string) {
-  const safeName = escapeHtml(guestName)
+  const firstName = escapeHtml(guestName.split(' ')[0])
+
   const html = `
     <div style="font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto;">
       <div style="background: linear-gradient(135deg, #1e40af, #3b82f6); padding: 32px; text-align: center; border-radius: 8px 8px 0 0;">
-        <h1 style="color: white; margin: 0;">À bientôt !</h1>
+        <h1 style="color: white; margin: 0; font-size: 24px;">Bienvenue à Hyères !</h1>
+        <p style="color: #dbeafe; margin: 8px 0 0;">Appartement du Port</p>
       </div>
       <div style="padding: 32px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
-        <p>Bonjour ${safeName},</p>
-        <p>Votre séjour à l'Appartement du Port de Hyères approche ! Voici les informations pour votre arrivée le <strong>${formatDate(checkIn)}</strong> :</p>
+        <p>Bonjour ${firstName},</p>
+        <p>Nous sommes ravis de vous accueillir pour votre séjour.</p>
 
         <div style="background: #f0f9ff; padding: 16px; border-radius: 8px; margin: 16px 0;">
-          <h3 style="margin: 0 0 12px; color: #1e40af;">Informations d'accès</h3>
+          <h3 style="margin: 0 0 12px; color: #1e40af;">📍 Adresse du logement</h3>
+          <p style="margin: 0;"><strong>26 Avenue Jean d'Agrève</strong><br>83400 Hyères</p>
+          <p style="margin: 8px 0 0;">L'appartement se situe au 3ᵉ étage de la résidence et est accessible par ascenseur.</p>
+        </div>
+
+        <div style="background: #f0f9ff; padding: 16px; border-radius: 8px; margin: 16px 0;">
+          <h3 style="margin: 0 0 12px; color: #1e40af;">🕒 Check-in</h3>
+          <p style="margin: 0;">Votre arrivée est prévue entre <strong>15h00 et 17h00</strong>.</p>
+        </div>
+
+        <div style="background: #f0f9ff; padding: 16px; border-radius: 8px; margin: 16px 0;">
+          <h3 style="margin: 0 0 12px; color: #1e40af;">🚗 Parking privé sécurisé</h3>
+          <p style="margin: 0;">Une place de parking est mise à votre disposition durant tout votre séjour.</p>
+          <p style="margin: 8px 0 0;"><strong>📍 Adresse du parking :</strong><br>20 bis Avenue Jean d'Agrève<br>83400 Hyères</p>
+          <p style="margin: 8px 0 0;">En entrant dans le parking de la résidence, la place se trouve sur la droite. Elle est facilement identifiable grâce à la plaque jaune portant l'immatriculation « 718BBN83 ».</p>
+        </div>
+
+        <div style="background: #f0f9ff; padding: 16px; border-radius: 8px; margin: 16px 0;">
+          <h3 style="margin: 0 0 12px; color: #1e40af;">📶 Wi-Fi</h3>
+          <p style="margin: 0;">Nom du réseau : __________<br>Mot de passe : __________</p>
+        </div>
+
+        <p>🛏️ Le logement est préparé avec le linge de lit et les serviettes de toilette.</p>
+
+        <div style="background: #f0f9ff; padding: 16px; border-radius: 8px; margin: 16px 0;">
+          <h3 style="margin: 0 0 12px; color: #1e40af;">📍 À proximité immédiate</h3>
           <ul style="margin: 0; padding-left: 20px;">
-            <li><strong>Check-in :</strong> à partir de 16h</li>
-            <li><strong>Wi-Fi :</strong> réseau et mot de passe affichés dans l'appartement</li>
-            <li><strong>Parking :</strong> place privée incluse (emplacement indiqué à l'arrivée)</li>
-            <li><strong>Étage :</strong> 3ème avec ascenseur</li>
+            <li>Port et restaurants : 20 m</li>
+            <li>Commerces alimentaires : 20 m</li>
+            <li>Plages : 500 m</li>
           </ul>
         </div>
 
         <div style="background: #fefce8; padding: 16px; border-radius: 8px; margin: 16px 0;">
-          <h3 style="margin: 0 0 12px; color: #92400e;">Navettes Porquerolles</h3>
-          <p style="margin: 0;">Les navettes partent du port toute la journée (5 min à pied). Pensez à réserver en haute saison sur tlv-tvm.com</p>
+          <h3 style="margin: 0 0 12px; color: #92400e;">Rappel des principales règles</h3>
+          <ul style="margin: 0; padding-left: 20px;">
+            <li>Appartement non-fumeur</li>
+            <li>Animaux interdits</li>
+            <li>Maximum 4 voyageurs</li>
+            <li>Fêtes et soirées interdites</li>
+            <li>Merci de respecter le calme de la résidence entre 22h00 et 9h00</li>
+          </ul>
         </div>
 
-        <p>Pour toute question, n'hésitez pas à nous contacter.</p>
-        <p>Bon voyage !<br>Thomas</p>
+        <p><strong>🕙 Départ :</strong> le départ doit être effectué avant <strong>10h00</strong> le jour de votre départ.</p>
+
+        <p>Si vous avez la moindre question pendant votre séjour, nous restons disponibles et serons heureux de vous aider.</p>
+        <p>Nous vous souhaitons un excellent séjour au port de Hyères !</p>
+        <p>À bientôt,<br><strong>Lucas</strong></p>
       </div>
     </div>
   `
@@ -186,7 +221,7 @@ export async function sendMessageNotification(guestName: string, guestEmail: str
 
   await resend.emails.send({
     from: 'Appartement du Port <noreply@locationporthyeres.fr>',
-    to: process.env.NOTIFICATION_EMAIL!,
+    to: process.env.NOTIFICATION_EMAIL ?? 'locationporthyeres@gmail.com',
     subject: `Nouveau message · ${safeName}`,
     html,
   })

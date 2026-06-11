@@ -1,0 +1,297 @@
+{
+  "header": {
+    "home": "Appartement du Port",
+    "amenities": "Equipements",
+    "reviews": "Avis",
+    "faq": "FAQ",
+    "contact": "Contact",
+    "book": "Réserver",
+    "openMenu": "Ouvrir le menu",
+    "closeMenu": "Fermer le menu"
+  },
+  "footer": {
+    "address": "Port de Hyères, 83400 Hyères, Var, France",
+    "registration": "N° enregistrement meublé de tourisme : en cours",
+    "contact": "Contact",
+    "links": "Liens",
+    "book": "Réserver",
+    "legal": "Mentions légales",
+    "copyright": "Appartement du Port · Hyères. Tous droits réservés."
+  },
+  "home": {
+    "hero": {
+      "title": "Appartement du Port",
+      "subtitle": "Sur le port de Hyères",
+      "features": "T2 rénové 45m² · Terrasse · Parking sécurisé · Climatisation",
+      "priceFrom": "À partir de {price}€ / nuit",
+      "ctaBook": "Voir les disponibilités",
+      "ctaDiscover": "Découvrir"
+    },
+    "amenities": {
+      "title": "Tout le confort pour vos vacances",
+      "parking": "Parking sécurisé",
+      "parkingDesc": "Place privée à 50m de la résidence",
+      "ac": "Climatisation",
+      "acDesc": "Séjour + chambre",
+      "beds": "Couchages modulables",
+      "bedsDesc": "1 lit 160x200 ou 2 lits 80x200 (chambre)",
+      "wifi": "Wi-Fi",
+      "wifiDesc": "Connexion haut débit",
+      "terrace": "Terrasse",
+      "terraceDesc": "Pour vos moments de détente",
+      "coffee": "Machine à café",
+      "coffeeDesc": "Cuisine entièrement équipée",
+      "washer": "Lave-linge",
+      "washerDesc": "Dans l'appartement",
+      "ferry": "Navettes îles",
+      "ferryDesc": "Port à 20m, Porquerolles accessible"
+    },
+    "description": {
+      "title": "Le logement",
+      "p1": "T2 neuf climatisé avec terrasse au port de Hyères, à 20m des restaurants et 500m de la plage. Parking sécurisé privé + Wi-Fi — tout se fait à pied pour un séjour sans contrainte.",
+      "p2": "Ce magnifique T2 de 45m² entièrement rénové est niché au 3e étage sur 5 d'une résidence avec ascenseur. Appartement refait à neuf, il allie confort, modernité et emplacement exceptionnel.",
+      "list": [
+        "Séjour lumineux avec canapé-lit confortable 140x190",
+        "Chambre modulable : 1 lit 160x200 ou 2 lits simples 80x200",
+        "Cuisine entièrement équipée avec machine à café",
+        "Salle de bain moderne",
+        "Climatisation dans le séjour et la chambre",
+        "Linge de lit et serviettes fournis",
+        "Terrasse pour vos moments de détente"
+      ]
+    },
+    "location": {
+      "title": "Emplacement idéal",
+      "intro": "Au cœur de la vie hyéroise, tout peut se faire à pied et en bus : plages, restaurants, port et commerces. Confort idéal pour vacances ou déplacements professionnels.",
+      "port": "Port & restaurants",
+      "shops": "Commerces",
+      "beaches": "Plages",
+      "airport": "Aéroport Toulon-Hyères",
+      "center": "Centre-ville Hyères"
+    },
+    "gallery": {
+      "title": "Galerie photos",
+      "placeholders": ["Salon", "Chambre", "Terrasse", "Cuisine", "Salle de bain", "Vue sur le port"]
+    },
+    "reviews": {
+      "title": "Ce que disent nos voyageurs",
+      "empty": "Les avis de nos voyageurs apparaîtront ici prochainement."
+    },
+    "cta": {
+      "title": "Réservez en direct · 0% de commission",
+      "subtitle": "Pas de frais de plateforme, vous payez le juste prix.",
+      "button": "Réserver maintenant"
+    }
+  },
+  "reservation": {
+    "title": "Réserver votre séjour",
+    "subtitle": "Appartement du Port · Hyères · Réservation directe sans frais",
+    "dates": {
+      "title": "Choisissez vos dates",
+      "period": "Période : {label} · {price}€/nuit · min. {nights} nuits"
+    },
+    "guests": {
+      "title": "Nombre de voyageurs"
+    },
+    "form": {
+      "title": "Vos informations",
+      "fullName": "Nom complet *",
+      "fullNamePlaceholder": "Jean Dupont",
+      "email": "Email *",
+      "emailPlaceholder": "jean@email.com",
+      "phone": "Téléphone",
+      "phonePlaceholder": "+33 6 00 00 00 00",
+      "message": "Message (optionnel)",
+      "messagePlaceholder": "Heure d'arrivée, préférence lit double ou 2 lits simples...",
+      "messageHint": "Linge de lit et serviettes fournis. Merci de nous indiquer si vous préférez un lit double ou 2 lits simples dans la chambre.",
+      "marketingConsent": "J'accepte de recevoir des offres et actualités par email (RGPD — désinscription possible à tout moment)",
+      "payButton": "Payer {amount}",
+      "paying": "Redirection vers le paiement...",
+      "sslEncrypted": "SSL chiffré",
+      "securePayment": "Paiement sécurisé par Stripe"
+    },
+    "summary": {
+      "title": "Récapitulatif",
+      "accommodation": "Hébergement ({nights} nuits)",
+      "avgPerNight": "~{price}€/nuit en moyenne",
+      "cleaningFee": "Frais de ménage",
+      "linenFee": "Linge de lit & serviettes ({nights} nuits)",
+      "touristTax": "Taxe de séjour",
+      "total": "Total",
+      "deposit": "Caution (non débitée)",
+      "depositInfo": "Empreinte bancaire de {amount}€ — restituée sous 7 jours après le départ si aucun dommage constaté.",
+      "selectDates": "Sélectionnez vos dates pour voir le prix.",
+      "checkIn": "Arrivée",
+      "checkOut": "Départ",
+      "nightCount": "{nights} nuit{plural} · {guests} voyageur{guestPlural}"
+    },
+    "info": {
+      "title": "Infos pratiques",
+      "checkTimes": "Arrivée : 15h-17h · Départ : avant 10h",
+      "noPets": "Animaux interdits",
+      "noSmoking": "Logement strictement non-fumeur"
+    },
+    "rules": {
+      "title": "Règlement intérieur",
+      "items": [
+        "Maximum 4 voyageurs. Fêtes, soirées et visiteurs non déclarés interdits.",
+        "Non-fumeur : des frais de désodorisation (500€ min.) seront facturés en cas de non-respect.",
+        "Animaux interdits quelle que soit leur taille.",
+        "Horaires calmes : 22h - 9h.",
+        "Caution de 750€ par empreinte bancaire, restituée sous 7 jours après le départ."
+      ]
+    },
+    "validation": {
+      "nameRequired": "Nom requis (2 caractères min.)",
+      "emailInvalid": "Email invalide",
+      "calcError": "Erreur de calcul",
+      "connectionError": "Erreur de connexion",
+      "bookingError": "Erreur lors de la réservation"
+    }
+  },
+  "faq": {
+    "pageTitle": "Questions fréquentes",
+    "pageSubtitle": "Tout ce que vous devez savoir avant votre séjour à l'Appartement du Port.",
+    "moreQuestions": "Vous avez d'autres questions ?",
+    "moreQuestionsText": "N'hésitez pas à nous contacter, nous vous répondrons dans les plus brefs délais.",
+    "contactUs": "Nous contacter",
+    "sections": [
+      {
+        "title": "Réservation & paiement",
+        "items": [
+          {
+            "question": "Comment réserver ?",
+            "answer": "Sélectionnez vos dates, remplissez le formulaire et payez en ligne par carte bancaire. Vous recevrez un email de confirmation immédiatement."
+          },
+          {
+            "question": "Quels moyens de paiement acceptez-vous ?",
+            "answer": "Carte bancaire (Visa, Mastercard, American Express) via Stripe, plateforme 100% sécurisée."
+          },
+          {
+            "question": "Puis-je annuler ma réservation ?",
+            "answer": "Annulation gratuite jusqu'à 30 jours avant l'arrivée. Entre 30 et 14 jours : remboursement de 50%. Moins de 14 jours : non remboursable."
+          },
+          {
+            "question": "Qu'est-ce que la caution de 750 € ?",
+            "answer": "Une empreinte bancaire de 750 € est prise lors du paiement. Elle n'est pas débitée. Elle est restituée sous 7 jours après votre départ si aucun dommage n'est constaté."
+          }
+        ]
+      },
+      {
+        "title": "Le logement",
+        "items": [
+          {
+            "question": "Quelle est la capacité de l'appartement ?",
+            "answer": "4 personnes maximum. L'appartement dispose d'une chambre avec lit modulable (1 lit 160×200 ou 2 lits 80×200) et d'un canapé-lit dans le séjour."
+          },
+          {
+            "question": "Y a-t-il la climatisation ?",
+            "answer": "Oui, dans le séjour et la chambre."
+          },
+          {
+            "question": "Le parking est-il inclus ?",
+            "answer": "Oui, une place de parking privé sécurisé est incluse, à 50 m de la résidence."
+          },
+          {
+            "question": "Le Wi-Fi est-il disponible ?",
+            "answer": "Oui, connexion haut débit incluse."
+          },
+          {
+            "question": "L'appartement est-il accessible en ascenseur ?",
+            "answer": "Oui, 3e étage avec ascenseur."
+          }
+        ]
+      },
+      {
+        "title": "Arrivée & départ",
+        "items": [
+          {
+            "question": "Quels sont les horaires ?",
+            "answer": "Arrivée entre 15h et 17h. Départ avant 10h."
+          },
+          {
+            "question": "Comment accéder à l'appartement ?",
+            "answer": "Les informations d'accès détaillées (code, étage, parking) vous seront envoyées par email 48h avant votre arrivée."
+          },
+          {
+            "question": "Où se garer ?",
+            "answer": "Place de parking privé incluse. L'emplacement exact vous sera communiqué avant votre arrivée."
+          }
+        ]
+      },
+      {
+        "title": "Règles & conditions",
+        "items": [
+          {
+            "question": "Les animaux sont-ils acceptés ?",
+            "answer": "Non, les animaux ne sont pas acceptés quelle que soit leur taille."
+          },
+          {
+            "question": "L'appartement est-il fumeur ?",
+            "answer": "Non, l'appartement est strictement non-fumeur. Des frais de désodorisation (500 € minimum) seront facturés en cas de non-respect."
+          },
+          {
+            "question": "Y a-t-il des horaires de calme ?",
+            "answer": "Oui, les horaires calmes sont de 22h à 9h."
+          },
+          {
+            "question": "Les fêtes sont-elles autorisées ?",
+            "answer": "Non, les fêtes, soirées et visiteurs non déclarés sont interdits."
+          }
+        ]
+      },
+      {
+        "title": "Aux alentours",
+        "items": [
+          {
+            "question": "Comment aller à Porquerolles ?",
+            "answer": "Les navettes partent du port (à 20 m de l'appartement) toute la journée. Traversée ~20 min. Pensez à réserver en haute saison sur tlv-tvm.com."
+          },
+          {
+            "question": "Où sont les plages les plus proches ?",
+            "answer": "La plage de l'Almanarre est à 500 m à pied."
+          },
+          {
+            "question": "Y a-t-il des commerces à proximité ?",
+            "answer": "Oui, restaurants et commerces à 20 m (sur le port). Centre-ville de Hyères à 5,6 km."
+          },
+          {
+            "question": "Comment accéder depuis l'aéroport ?",
+            "answer": "L'aéroport de Toulon-Hyères est à seulement 1,5 km."
+          }
+        ]
+      }
+    ]
+  },
+  "contact": {
+    "title": "Nous contacter",
+    "form": {
+      "name": "Nom *",
+      "email": "Email *",
+      "subject": "Sujet",
+      "message": "Message *",
+      "send": "Envoyer",
+      "sending": "Envoi..."
+    },
+    "chat": {
+      "conversation": "Conversation",
+      "newConversation": "Nouvelle conversation",
+      "placeholder": "Votre message...",
+      "loading": "Chargement..."
+    }
+  },
+  "notFound": {
+    "title": "Page introuvable",
+    "message": "La page que vous recherchez n'existe pas ou a été déplacée.",
+    "home": "Retour à l'accueil",
+    "book": "Réserver"
+  },
+  "mentionsLegales": {
+    "englishNote": ""
+  },
+  "common": {
+    "loading": "Chargement...",
+    "error": "Une erreur est survenue",
+    "connectionError": "Erreur de connexion"
+  }
+}

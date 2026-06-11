@@ -1,5 +1,6 @@
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
+import MentionsLegalesNote from '@/components/MentionsLegalesNote'
 
 export const metadata = {
   title: 'Mentions légales · Appartement du Port Hyères',
@@ -11,6 +12,7 @@ export default function MentionsLegales() {
       <Header />
       <main className="flex-1 pt-24 pb-16">
         <div className="max-w-3xl mx-auto px-4 prose prose-gray">
+          <MentionsLegalesNote />
           <h1>Mentions légales</h1>
 
           <h2>Éditeur du site</h2>

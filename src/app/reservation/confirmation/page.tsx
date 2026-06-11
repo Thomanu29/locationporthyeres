@@ -2,6 +2,7 @@ import { CheckCircle, Home, Calendar, Mail, AlertCircle } from 'lucide-react'
 import Link from 'next/link'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
+import DocumentUpload from '@/components/DocumentUpload'
 import { stripe } from '@/lib/stripe'
 import { supabaseAdmin } from '@/lib/supabase'
 import { sendConfirmationEmail, sendOwnerNotification } from '@/lib/emails'
@@ -188,6 +189,10 @@ export default async function ConfirmationPage({
                 <span className="font-bold pt-2 border-t border-border">{Number(booking.total_amount).toFixed(2)}€</span>
               </div>
             </div>
+          )}
+
+          {booking && (
+            <DocumentUpload bookingId={booking.id} />
           )}
 
           <div className="bg-surface rounded-xl p-6 mb-8 text-left space-y-4">

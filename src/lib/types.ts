@@ -91,6 +91,7 @@ export interface PriceCalculation {
   min_nights: number
   rule_label: string
   accommodation_total?: number
+  linen_fee?: number
   deposit_amount?: number
   daily_breakdown?: { date: string; price: number }[]
 }
@@ -102,6 +103,14 @@ export interface Photo {
   url: string
   alt: string | null
   sort_order: number
+}
+
+export interface BookingDocument {
+  id: string
+  booking_id: string
+  document_type: string
+  file_url: string
+  uploaded_at: string
 }
 
 export interface BookingFormData {

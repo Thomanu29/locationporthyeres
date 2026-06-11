@@ -19,7 +19,7 @@ import {
   Upload,
   MessageSquare,
 } from 'lucide-react'
-import type { Booking, PricingRule, BlockedDate, Review, Guest, Photo } from '@/lib/types'
+import type { Booking, PricingRule, BlockedDate, Review, Guest, Photo, BookingDocument } from '@/lib/types'
 import MessagesTab from '@/components/admin/MessagesTab'
 
 type Tab = 'dashboard' | 'bookings' | 'guests' | 'pricing' | 'blocked' | 'reviews' | 'photos' | 'messages'
@@ -213,6 +213,28 @@ function StatCard({ label, value, icon: Icon }: { label: string; value: string; 
 function BookingsTab({ token }: { token: string }) {
   const { data: bookings, loading } = useFetch<Booking[]>('/api/admin/bookings', token)
   const [filter, setFilter] = useState<'all' | 'paid' | 'pending' | 'cancelled'>('all')
+  const [docs, setDocs] = useState<Record<string, BookingDocument[]>>({})
+
+  useEffect(() => {
+    if (!bookings) return
+    const paidIds = bookings.filter((b) => b.payment_status === 'paid').map((b) => b.id)
+    if (paidIds.length === 0) return
+
+    Promise.all(
+      paidIds.map((id) =>
+        fetch(`/api/bookings/documents?booking_id=${encodeURIComponent(id)}`)
+          .then((r) => r.json())
+          .then((d: BookingDocument[]) => [id, Array.isArray(d) ? d : []] as const)
+          .catch(() => [id, []] as const)
+      )
+    ).then((results) => {
+      const map: Record<string, BookingDocument[]> = {}
+      for (const [id, documents] of results) {
+        if (documents.length > 0) map[id] = documents as BookingDocument[]
+      }
+      setDocs(map)
+    })
+  }, [bookings])
 
   const filtered = bookings?.filter((b) => filter === 'all' || b.payment_status === filter) ?? []
 
@@ -241,13 +263,14 @@ function BookingsTab({ token }: { token: string }) {
               <th className="p-3 font-medium">Total</th>
               <th className="p-3 font-medium">Statut</th>
               <th className="p-3 font-medium">Source</th>
+              <th className="p-3 font-medium">Documents</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
-              <tr><td colSpan={6} className="p-4 text-center text-muted">Chargement...</td></tr>
+              <tr><td colSpan={7} className="p-4 text-center text-muted">Chargement...</td></tr>
             ) : filtered.length === 0 ? (
-              <tr><td colSpan={6} className="p-4 text-center text-muted">Aucune réservation</td></tr>
+              <tr><td colSpan={7} className="p-4 text-center text-muted">Aucune réservation</td></tr>
             ) : (
               filtered.map((b) => (
                 <tr key={b.id} className="border-b border-border hover:bg-surface">
@@ -268,6 +291,28 @@ function BookingsTab({ token }: { token: string }) {
                     </span>
                   </td>
                   <td className="p-3 text-muted">{b.source}</td>
+                  <td className="p-3">
+                    {docs[b.id] && docs[b.id].length > 0 ? (
+                      <div className="flex flex-col gap-1">
+                        {docs[b.id].map((doc) => (
+                          <a
+                            key={doc.id}
+                            href={doc.file_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-primary hover:underline text-xs"
+                          >
+                            <ExternalLink className="w-3 h-3" />
+                            RC
+                          </a>
+                        ))}
+                      </div>
+                    ) : b.payment_status === 'paid' ? (
+                      <span className="text-xs text-amber-600">En attente</span>
+                    ) : (
+                      <span className="text-xs text-muted">-</span>
+                    )}
+                  </td>
                 </tr>
               ))
             )}

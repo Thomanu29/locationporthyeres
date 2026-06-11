@@ -3,24 +3,27 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { Anchor, Menu, X } from 'lucide-react'
-
-const navLinks = [
-  { href: '/#equipements', label: 'Équipements' },
-  { href: '/#avis', label: 'Avis' },
-  { href: '/faq', label: 'FAQ' },
-  { href: '/contact', label: 'Contact' },
-]
+import { useTranslation } from '@/lib/i18n'
+import LanguageSwitcher from './LanguageSwitcher'
 
 export default function Header({ variant = 'transparent' }: { variant?: 'transparent' | 'solid' }) {
   const [menuOpen, setMenuOpen] = useState(false)
   const isTransparent = variant === 'transparent'
+  const { t } = useTranslation()
+
+  const navLinks = [
+    { href: '/#equipements', label: t('header.amenities') },
+    { href: '/#avis', label: t('header.reviews') },
+    { href: '/faq', label: t('header.faq') },
+    { href: '/contact', label: t('header.contact') },
+  ]
 
   return (
     <header className={isTransparent ? 'absolute top-0 left-0 right-0 z-50' : 'sticky top-0 z-50 bg-white border-b border-border'}>
       <nav className="max-w-6xl mx-auto px-4 py-4 flex items-center justify-between">
         <Link href="/" className={`flex items-center gap-2 font-semibold text-lg ${isTransparent ? 'text-white' : 'text-foreground'}`}>
           <Anchor className="w-6 h-6" />
-          <span>Appartement du Port</span>
+          <span>{t('header.home')}</span>
         </Link>
         <div className="flex items-center gap-6">
           {navLinks.map((link) => (
@@ -32,16 +35,17 @@ export default function Header({ variant = 'transparent' }: { variant?: 'transpa
               {link.label}
             </Link>
           ))}
+          <LanguageSwitcher variant={variant} />
           <Link
             href="/reservation"
             className={`font-semibold px-4 py-2 rounded-lg transition ${isTransparent ? 'bg-white text-primary hover:bg-gray-100' : 'bg-primary text-white hover:bg-primary-dark'}`}
           >
-            Réserver
+            {t('header.book')}
           </Link>
           <button
             onClick={() => setMenuOpen(!menuOpen)}
             className={`sm:hidden p-1 ${isTransparent ? 'text-white' : 'text-foreground'}`}
-            aria-label={menuOpen ? 'Fermer le menu' : 'Ouvrir le menu'}
+            aria-label={menuOpen ? t('header.closeMenu') : t('header.openMenu')}
           >
             {menuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
           </button>
