@@ -49,7 +49,7 @@ export async function POST(req: NextRequest) {
       date_from: '2026-01-01',
       date_to: '2027-12-31',
       price_per_night: 100,
-      min_nights: 2,
+      min_nights: 3,
     }
 
     const price = calculatePrice(rule, data.check_in, data.check_out, data.guest_count, dailyPrices)
@@ -89,6 +89,44 @@ export async function POST(req: NextRequest) {
 
     const accommodationTotal = price.accommodation_total ?? (price.price_per_night * price.nights)
 
+    const lineItems = [
+      {
+        price_data: {
+          currency: 'eur',
+          product_data: { name: `Hébergement ${price.nights} nuits` },
+          unit_amount: Math.round(accommodationTotal * 100),
+        },
+        quantity: 1,
+      },
+      {
+        price_data: {
+          currency: 'eur',
+          product_data: { name: 'Frais de ménage' },
+          unit_amount: Math.round(price.cleaning_fee * 100),
+        },
+        quantity: 1,
+      },
+      {
+        price_data: {
+          currency: 'eur',
+          product_data: { name: 'Taxe de séjour' },
+          unit_amount: Math.round(price.tourist_tax * 100),
+        },
+        quantity: 1,
+      },
+    ]
+
+    if ((price.linen_fee ?? 0) > 0) {
+      lineItems.push({
+        price_data: {
+          currency: 'eur',
+          product_data: { name: `Linge de lit & serviettes (${price.nights} nuits)` },
+          unit_amount: Math.round((price.linen_fee ?? 0) * 100),
+        },
+        quantity: 1,
+      })
+    }
+
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
       mode: 'payment',
@@ -102,40 +140,7 @@ export async function POST(req: NextRequest) {
         guest_name: data.guest_name,
         guest_phone: data.guest_phone ?? '',
       },
-      line_items: [
-        {
-          price_data: {
-            currency: 'eur',
-            product_data: { name: `Hébergement ${price.nights} nuits` },
-            unit_amount: Math.round(accommodationTotal * 100),
-          },
-          quantity: 1,
-        },
-        {
-          price_data: {
-            currency: 'eur',
-            product_data: { name: 'Frais de ménage' },
-            unit_amount: Math.round(price.cleaning_fee * 100),
-          },
-          quantity: 1,
-        },
-        {
-          price_data: {
-            currency: 'eur',
-            product_data: { name: `Linge de lit & serviettes (${price.nights} nuits)` },
-            unit_amount: Math.round((price.linen_fee ?? 0) * 100),
-          },
-          quantity: 1,
-        },
-        {
-          price_data: {
-            currency: 'eur',
-            product_data: { name: 'Taxe de séjour' },
-            unit_amount: Math.round(price.tourist_tax * 100),
-          },
-          quantity: 1,
-        },
-      ],
+      line_items: lineItems,
       success_url: `https://locationporthyeres.fr/reservation/confirmation?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `https://locationporthyeres.fr/reservation`,
     })

@@ -18,7 +18,7 @@ export default function MentionsLegales() {
           <h2>Éditeur du site</h2>
           <p>
             Thomas Manuguerra<br />
-            Port de Hyères, 83400 Hyères, Var, France<br />
+            26 Avenue Jean d&apos;Agrève, 83400 Hyères, Var, France<br />
             Email : locationporthyeres@gmail.com
           </p>
 
@@ -26,6 +26,9 @@ export default function MentionsLegales() {
           <p>
             Ce site est hébergé par Vercel Inc., 440 N Bashaw Ave #100, Covina, CA 91723, États-Unis.
           </p>
+
+          <h2>SIRET</h2>
+          <p>106 351 034 00017</p>
 
           <h2>Meublé de tourisme</h2>
           <p>

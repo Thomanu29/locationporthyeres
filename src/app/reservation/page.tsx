@@ -383,10 +383,12 @@ export default function ReservationPage() {
                       <span>{t('reservation.summary.cleaningFee')}</span>
                       <span>{price.cleaning_fee}€</span>
                     </div>
+                    {(price.linen_fee ?? 0) > 0 && (
                     <div className="flex justify-between">
                       <span>{t('reservation.summary.linenFee', { nights: price.nights })}</span>
                       <span>{price.linen_fee}€</span>
                     </div>
+                    )}
                     <div className="flex justify-between">
                       <span>{t('reservation.summary.touristTax')}</span>
                       <span>{price.tourist_tax.toFixed(2)}€</span>

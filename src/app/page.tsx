@@ -37,12 +37,12 @@ export default async function HomePage() {
             '@context': 'https://schema.org',
             '@type': 'LodgingBusiness',
             name: 'Appartement du Port · Hyères',
-            description: 'T2 rénové 45m² avec terrasse sur le port de Hyères, à 20m des restaurants et 500m de la plage.',
+            description: 'T2 rénové 45m² avec loggia fermée sur le port de Hyères, à 20m des restaurants et 500m de la plage.',
             url: 'https://locationporthyeres.fr',
-            telephone: '',
+            telephone: '+33650670355',
             address: {
               '@type': 'PostalAddress',
-              streetAddress: 'Port de Hyères',
+              streetAddress: '26 Avenue Jean d\'Agrève',
               addressLocality: 'Hyères',
               postalCode: '83400',
               addressRegion: 'Var',
@@ -63,7 +63,7 @@ export default async function HomePage() {
             petsAllowed: false,
             smokingAllowed: false,
             checkinTime: '15:00',
-            checkoutTime: '09:00',
+            checkoutTime: '10:00',
           }),
         }}
       />

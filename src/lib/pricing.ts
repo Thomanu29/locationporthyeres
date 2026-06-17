@@ -2,10 +2,10 @@ import { supabaseAdmin } from './supabase'
 import type { PriceCalculation, PricingRule } from './types'
 import { formatLocalDate } from './date-utils'
 
-const CLEANING_FEE = 60
+const CLEANING_FEE = 50
 const TOURIST_TAX_PER_PERSON_PER_NIGHT = 2.5
-const LINEN_FEE_PER_NIGHT = 4
-const DEPOSIT_AMOUNT = 750
+const LINEN_FEE_PER_NIGHT = 0
+const DEPOSIT_AMOUNT = 300
 
 export async function getPricingRules(): Promise<PricingRule[]> {
   const { data, error } = await supabaseAdmin

@@ -55,6 +55,7 @@ export async function sendConfirmationEmail(data: BookingEmailData) {
             <li>Check-out : avant 10h</li>
             <li>Parking privé inclus</li>
             <li>Linge de lit et serviettes fournis</li>
+            <li>Lit parapluie et chaise haute disponibles sur demande</li>
             <li>Climatisation salon + chambre</li>
           </ul>
         </div>
@@ -143,7 +144,7 @@ export async function sendReminderEmail(guestName: string, guestEmail: string, c
         <div style="background: #f0f9ff; padding: 16px; border-radius: 8px; margin: 16px 0;">
           <h3 style="margin: 0 0 12px; color: #1e40af;">📍 À proximité immédiate</h3>
           <ul style="margin: 0; padding-left: 20px;">
-            <li>Port et restaurants : 20 m</li>
+            <li>Port et restaurants : 100 m</li>
             <li>Commerces alimentaires : 20 m</li>
             <li>Plages : 500 m</li>
           </ul>

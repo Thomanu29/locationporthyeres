@@ -50,10 +50,11 @@ export default function HomeContent({ reviews, galleryPhotos, heroPhoto, avgRati
     { icon: Coffee, label: t('home.amenities.coffee'), desc: t('home.amenities.coffeeDesc') },
     { icon: WashingMachine, label: t('home.amenities.washer'), desc: t('home.amenities.washerDesc') },
     { icon: Ship, label: t('home.amenities.ferry'), desc: t('home.amenities.ferryDesc') },
+    { icon: Bed, label: t('home.amenities.baby'), desc: t('home.amenities.babyDesc') },
   ]
 
   const proximite = [
-    { icon: Ship, label: t('home.location.port'), distance: '20m' },
+    { icon: Ship, label: t('home.location.port'), distance: '100m' },
     { icon: ShoppingCart, label: t('home.location.shops'), distance: '20m' },
     { icon: Waves, label: t('home.location.beaches'), distance: '500m' },
     { icon: Plane, label: t('home.location.airport'), distance: '1,5km' },

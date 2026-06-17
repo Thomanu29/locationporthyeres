@@ -81,7 +81,7 @@ export default function RentalContract({
               <li>Type&nbsp;: Appartement T2 d&apos;environ 45&nbsp;m&sup2;</li>
               <li>Adresse&nbsp;: 26 Avenue Jean d&apos;Agreve, 83400 Hyeres, France</li>
               <li>Etage&nbsp;: 3eme etage avec ascenseur</li>
-              <li>Composition&nbsp;: sejour avec cuisine equipee, 1 chambre, 1 salle de bain, 1 WC, 1 balcon</li>
+              <li>Composition&nbsp;: sejour avec cuisine equipee, 1 chambre, 1 salle de bain, 1 WC, 1 loggia fermee</li>
               <li>Equipements inclus&nbsp;: climatisation, Wi-Fi, place de parking privee</li>
             </ul>
           </section>
@@ -139,7 +139,7 @@ export default function RentalContract({
           <section>
             <h3 className="font-semibold text-base mb-2">Article 5 &mdash; Depot de garantie (caution)</h3>
             <p>
-              Un depot de garantie de <strong>750&nbsp;&euro;</strong> est collecte sous forme d&apos;empreinte bancaire lors de la reservation. Ce montant ne sera pas debite sauf en cas de dommages constates lors de l&apos;etat des lieux de sortie.
+              Un depot de garantie de <strong>300&nbsp;&euro;</strong> est collecte sous forme d&apos;empreinte bancaire lors de la reservation. Ce montant ne sera pas debite sauf en cas de dommages constates lors de l&apos;etat des lieux de sortie.
             </p>
             <p className="mt-1">
               La caution est restituee (liberation de l&apos;empreinte) sous 7 jours apres le depart, deduction faite des eventuelles reparations ou remplacements necessaires.
@@ -174,6 +174,9 @@ export default function RentalContract({
             <h3 className="font-semibold text-base mb-2">Article 7 &mdash; Linge de lit et serviettes</h3>
             <p>
               Le linge de lit et les serviettes de toilette sont fournis pour la duree du sejour. Le Preneur est invite a preciser sa preference de literie (1 lit double 160x200 cm ou 2 lits simples 80x200 cm) lors de la reservation.
+            </p>
+            <p className="mt-2">
+              Un lit parapluie et une chaise haute pour bebe sont disponibles gratuitement sur demande.
             </p>
           </section>
 

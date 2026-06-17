@@ -10,8 +10,8 @@
     "closeMenu": "Close menu"
   },
   "footer": {
-    "address": "Port de Hyères, 83400 Hyères, Var, France",
-    "registration": "Tourism rental registration number: pending",
+    "address": "26 Avenue Jean d'Agrève, 83400 Hyères, Var, France",
+    "registration": "SIRET: 106 351 034 00017 · Tourism rental registration number: pending",
     "contact": "Contact",
     "links": "Links",
     "book": "Book now",
@@ -22,7 +22,7 @@
     "hero": {
       "title": "Appartement du Port",
       "subtitle": "On the port of Hyères",
-      "features": "Renovated 1BR 45m² · Terrace · Secure parking · Air conditioning",
+      "features": "Renovated 1BR 45m² · Enclosed loggia · Secure parking · Air conditioning",
       "priceFrom": "From {price}€ / night",
       "ctaBook": "Check availability",
       "ctaDiscover": "Discover"
@@ -37,18 +37,20 @@
       "bedsDesc": "1 queen bed or 2 single beds (bedroom)",
       "wifi": "Wi-Fi",
       "wifiDesc": "High-speed internet",
-      "terrace": "Terrace",
+      "terrace": "Enclosed loggia",
       "terraceDesc": "For your relaxation",
       "coffee": "Coffee machine",
       "coffeeDesc": "Fully equipped kitchen",
       "washer": "Washing machine",
       "washerDesc": "In the apartment",
       "ferry": "Island ferries",
-      "ferryDesc": "Port 20m away, Porquerolles accessible"
+      "ferryDesc": "Port 100m away, Golden Islands accessible",
+      "baby": "Baby equipment",
+      "babyDesc": "Free crib and high chair on request"
     },
     "description": {
       "title": "The apartment",
-      "p1": "Air-conditioned 1BR apartment with terrace on the port of Hyères, 20m from restaurants and 500m from the beach. Secure private parking + Wi-Fi — everything is walkable for a hassle-free stay.",
+      "p1": "Air-conditioned 1BR apartment with enclosed loggia on the port of Hyères, 20m from restaurants and 500m from the beach. Secure private parking + Wi-Fi — everything is walkable for a hassle-free stay.",
       "p2": "This beautiful 45m² fully renovated apartment is located on the 3rd floor of a 5-story building with elevator. Completely refurbished, it combines comfort, modernity and an exceptional location.",
       "list": [
         "Bright living room with comfortable sofa bed 140x190",
@@ -57,7 +59,8 @@
         "Modern bathroom",
         "Air conditioning in living room and bedroom",
         "Bed linen and towels provided",
-        "Terrace for your relaxation"
+        "Enclosed loggia for your relaxation",
+        "Free crib and high chair available on request"
       ]
     },
     "location": {
@@ -71,7 +74,7 @@
     },
     "gallery": {
       "title": "Photo gallery",
-      "placeholders": ["Living room", "Bedroom", "Terrace", "Kitchen", "Bathroom", "Port view"]
+      "placeholders": ["Living room", "Bedroom", "Loggia", "Kitchen", "Bathroom", "Port view"]
     },
     "reviews": {
       "title": "What our guests say",
@@ -102,8 +105,8 @@
       "phone": "Phone",
       "phonePlaceholder": "+33 6 00 00 00 00",
       "message": "Message (optional)",
-      "messagePlaceholder": "Arrival time, bed preference (queen or 2 singles)...",
-      "messageHint": "Bed linen and towels provided. Please let us know if you prefer a queen bed or 2 single beds in the bedroom.",
+      "messagePlaceholder": "Arrival time, bed preference (queen or 2 singles), need baby cot...",
+      "messageHint": "Bed linen and towels provided. Free crib and high chair available on request. Please let us know if you prefer a queen bed or 2 single beds.",
       "marketingConsent": "I agree to receive offers and updates by email (GDPR — you can unsubscribe at any time)",
       "payButton": "Pay {amount}",
       "paying": "Redirecting to payment...",
@@ -138,7 +141,7 @@
         "Non-smoking: deodorizing fees (minimum 500€) will be charged if not respected.",
         "No pets allowed regardless of size.",
         "Quiet hours: 10pm - 9am.",
-        "Security deposit of 750€ by card hold, released within 7 days after departure."
+        "Security deposit of 300€ by card hold, released within 7 days after departure."
       ]
     },
     "validation": {
@@ -172,8 +175,8 @@
             "answer": "Free cancellation up to 30 days before arrival. Between 30 and 14 days: 50% refund. Less than 14 days: non-refundable."
           },
           {
-            "question": "What is the 750€ security deposit?",
-            "answer": "A hold of 750€ is placed on your card at the time of payment. It is not charged. It is released within 7 days after your departure if no damage is found."
+            "question": "What is the 300€ security deposit?",
+            "answer": "A hold of 300€ is placed on your card at the time of payment. It is not charged. It is released within 7 days after your departure if no damage is found."
           }
         ]
       },
@@ -245,11 +248,11 @@
         "items": [
           {
             "question": "How do I get to Porquerolles?",
-            "answer": "Ferries depart from the port (20m from the apartment) throughout the day. Crossing ~20 min. Book in advance during peak season at tlv-tvm.com."
+            "answer": "Ferries depart from the port (100m from the apartment) throughout the day for Port-Cros and Le Levant, with only 2 departures and 2 returns in July and August for Porquerolles. Crossing ~20 min. Book in advance during peak season at tlv-tvm.com."
           },
           {
             "question": "Where are the nearest beaches?",
-            "answer": "Almanarre beach is 500m on foot."
+            "answer": "Bona beach is 500m on foot."
           },
           {
             "question": "Are there shops nearby?",
@@ -257,7 +260,7 @@
           },
           {
             "question": "How do I get from the airport?",
-            "answer": "Toulon-Hyères airport is only 1.5km away."
+            "answer": "Toulon-Hyères airport is only 1.5km away. Bus line 63, stop Jean d'Agrève, is 20 meters from the building entrance."
           }
         ]
       }
