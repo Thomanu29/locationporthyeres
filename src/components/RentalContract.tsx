@@ -79,7 +79,7 @@ export default function RentalContract({
             </p>
             <ul className="list-disc ml-5 mt-2 space-y-1">
               <li>Type&nbsp;: Appartement T2 d&apos;environ 45&nbsp;m&sup2;</li>
-              <li>Adresse&nbsp;: 26 Avenue Jean d&apos;Agreve, 83400 Hyeres, France</li>
+              <li>Adresse&nbsp;: communiquee par email 48h avant l&apos;arrivee</li>
               <li>Etage&nbsp;: 3eme etage avec ascenseur</li>
               <li>Composition&nbsp;: sejour avec cuisine equipee, 1 chambre, 1 salle de bain, 1 WC, 1 loggia fermee</li>
               <li>Equipements inclus&nbsp;: climatisation, Wi-Fi, place de parking privee</li>

@@ -42,7 +42,7 @@ export default async function HomePage() {
             telephone: '+33650670355',
             address: {
               '@type': 'PostalAddress',
-              streetAddress: '26 Avenue Jean d\'Agrève',
+              streetAddress: 'Port de Hyères',
               addressLocality: 'Hyères',
               postalCode: '83400',
               addressRegion: 'Var',

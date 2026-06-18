@@ -18,7 +18,7 @@ export default function MentionsLegales() {
           <h2>Éditeur du site</h2>
           <p>
             Thomas Manuguerra<br />
-            26 Avenue Jean d&apos;Agrève, 83400 Hyères, Var, France<br />
+            83400 Hyères, Var, France<br />
             Email : locationporthyeres@gmail.com
           </p>
 
