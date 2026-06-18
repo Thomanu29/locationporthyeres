@@ -368,6 +368,40 @@ export async function sendRcReminderEmail(guestName: string, guestEmail: string,
   })
 }
 
+export async function sendRcReceivedGuestEmail(guestName: string, guestEmail: string, checkIn: string, checkOut: string) {
+  const firstName = escapeHtml(guestName.split(' ')[0])
+
+  const html = `
+    <div style="font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto;">
+      <div style="background: linear-gradient(135deg, #059669, #10b981); padding: 32px; text-align: center; border-radius: 8px 8px 0 0;">
+        <h1 style="color: white; margin: 0; font-size: 24px;">Attestation bien reçue !</h1>
+        <p style="color: #d1fae5; margin: 8px 0 0;">Appartement du Port · Hyères</p>
+      </div>
+      <div style="padding: 32px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
+        <p>Bonjour ${firstName},</p>
+        <p>Nous avons bien reçu votre attestation d'assurance responsabilité civile villégiature. Votre dossier est maintenant <strong>complet</strong>.</p>
+
+        <div style="background: #ecfdf5; border: 2px solid #10b981; border-radius: 8px; padding: 16px; margin: 20px 0; text-align: center;">
+          <p style="margin: 0; font-size: 16px; font-weight: bold; color: #059669;">Dossier complet ✓</p>
+          <p style="margin: 8px 0 0; font-size: 14px; color: #065f46;">Séjour du ${formatDate(checkIn)} au ${formatDate(checkOut)}</p>
+        </div>
+
+        <p>Nous vous enverrons les informations d'accès (adresse, parking, Wi-Fi) <strong>48h avant votre arrivée</strong>.</p>
+
+        <p>À bientôt à Hyères !</p>
+        <p>Lucas</p>
+      </div>
+    </div>
+  `
+
+  await resend.emails.send({
+    from: 'Appartement du Port <noreply@locationporthyeres.fr>',
+    to: guestEmail,
+    subject: `✅ Attestation RC reçue — Votre dossier est complet`,
+    html,
+  })
+}
+
 export async function sendRcReceivedOwnerEmail(guestName: string, checkIn: string, checkOut: string, uploadedViaSite = false) {
   const safeName = escapeHtml(guestName)
 

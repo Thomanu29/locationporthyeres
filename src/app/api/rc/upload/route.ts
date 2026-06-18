@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
-import { sendRcReceivedOwnerEmail } from '@/lib/emails'
+import { sendRcReceivedOwnerEmail, sendRcReceivedGuestEmail } from '@/lib/emails'
 
 const MAX_FILE_SIZE = 5 * 1024 * 1024
 const ALLOWED_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp']
@@ -77,7 +77,7 @@ export async function POST(req: NextRequest) {
       .from('document')
       .getPublicUrl(fileName)
 
-    await supabaseAdmin
+    const { error: insertError } = await supabaseAdmin
       .from('booking_documents')
       .insert({
         booking_id: booking.id,
@@ -85,7 +85,11 @@ export async function POST(req: NextRequest) {
         file_url: urlData.publicUrl,
       })
 
-    await supabaseAdmin
+    if (insertError) {
+      console.error('booking_documents insert error:', insertError)
+    }
+
+    const { error: updateError } = await supabaseAdmin
       .from('bookings')
       .update({
         rc_status: 'received',
@@ -93,7 +97,18 @@ export async function POST(req: NextRequest) {
       })
       .eq('id', booking.id)
 
-    await sendRcReceivedOwnerEmail(booking.guest_name, booking.check_in, booking.check_out, true)
+    if (updateError) {
+      console.error('booking update error:', updateError)
+    }
+
+    try {
+      await Promise.all([
+        sendRcReceivedGuestEmail(booking.guest_name, booking.guest_email, booking.check_in, booking.check_out),
+        sendRcReceivedOwnerEmail(booking.guest_name, booking.check_in, booking.check_out, true),
+      ])
+    } catch (emailErr) {
+      console.error('RC email failed (non-blocking):', emailErr)
+    }
 
     return NextResponse.json({ ok: true })
   } catch (error) {

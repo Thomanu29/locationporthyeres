@@ -4,6 +4,7 @@ import { verifyAdmin } from '@/lib/admin-auth'
 import { stripe } from '@/lib/stripe'
 import {
   sendRcReceivedOwnerEmail,
+  sendRcReceivedGuestEmail,
   sendRcExtensionEmail,
   sendRcCancellationEmail,
 } from '@/lib/emails'
@@ -39,7 +40,10 @@ export async function PATCH(req: NextRequest) {
       })
       .eq('id', id)
 
-    await sendRcReceivedOwnerEmail(booking.guest_name, booking.check_in, booking.check_out)
+    await Promise.all([
+      sendRcReceivedOwnerEmail(booking.guest_name, booking.check_in, booking.check_out),
+      sendRcReceivedGuestEmail(booking.guest_name, booking.guest_email, booking.check_in, booking.check_out),
+    ])
     return NextResponse.json({ ok: true })
   }
 
