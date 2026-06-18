@@ -3,6 +3,7 @@ import { stripe } from '@/lib/stripe'
 import { supabaseAdmin } from '@/lib/supabase'
 import { sendConfirmationEmail, sendOwnerNotification, sendRcRequestEmail } from '@/lib/emails'
 import { addDays, format } from 'date-fns'
+import { randomUUID } from 'crypto'
 
 export async function POST(req: NextRequest) {
   const body = await req.text()
@@ -28,6 +29,7 @@ export async function POST(req: NextRequest) {
     }
 
     const rcDeadline = format(addDays(new Date(), 7), 'yyyy-MM-dd')
+    const rcUploadToken = randomUUID()
 
     await supabaseAdmin
       .from('bookings')
@@ -37,6 +39,7 @@ export async function POST(req: NextRequest) {
         rc_deadline: rcDeadline,
         rc_status: 'pending',
         rc_consent: session.metadata?.rc_consent === 'true',
+        rc_upload_token: rcUploadToken,
       })
       .eq('id', bookingId)
 
@@ -86,7 +89,7 @@ export async function POST(req: NextRequest) {
       await Promise.all([
         sendConfirmationEmail(emailData),
         sendOwnerNotification(emailData),
-        sendRcRequestEmail(booking.guest_name, booking.guest_email, booking.check_in, rcDeadline),
+        sendRcRequestEmail(booking.guest_name, booking.guest_email, booking.check_in, rcDeadline, rcUploadToken),
       ])
 
       try {

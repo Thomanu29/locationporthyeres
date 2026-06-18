@@ -810,8 +810,29 @@ function RcTab({ token }: { token: string }) {
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [flash, setFlash] = useState<string | null>(null)
   const [extendForm, setExtendForm] = useState<{ id: string; deadline: string; notes: string } | null>(null)
+  const [docs, setDocs] = useState<Record<string, BookingDocument[]>>({})
 
   const rcBookings = (bookings ?? []).filter((b) => b.payment_status === 'paid' || b.rc_status === 'cancelled_no_rc')
+
+  useEffect(() => {
+    if (!bookings) return
+    const ids = bookings.filter((b) => b.payment_status === 'paid' || b.rc_status === 'received').map((b) => b.id)
+    if (ids.length === 0) return
+    Promise.all(
+      ids.map((id) =>
+        fetch(`/api/bookings/documents?booking_id=${encodeURIComponent(id)}`)
+          .then((r) => r.json())
+          .then((d: BookingDocument[]) => [id, Array.isArray(d) ? d : []] as const)
+          .catch(() => [id, []] as const)
+      )
+    ).then((results) => {
+      const map: Record<string, BookingDocument[]> = {}
+      for (const [id, documents] of results) {
+        if (documents.length > 0) map[id] = documents as BookingDocument[]
+      }
+      setDocs(map)
+    })
+  }, [bookings])
 
   const pending = rcBookings.filter((b) => b.rc_status === 'pending' || b.rc_status === 'extended')
   const received = rcBookings.filter((b) => b.rc_status === 'received')
@@ -910,15 +931,16 @@ function RcTab({ token }: { token: string }) {
                 <th className="p-3 font-medium">Email</th>
                 <th className="p-3 font-medium">Arrivée</th>
                 <th className="p-3 font-medium">Deadline RC</th>
+                <th className="p-3 font-medium">Document</th>
                 <th className="p-3 font-medium">Statut RC</th>
                 <th className="p-3 font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={6} className="p-4 text-center text-muted">Chargement...</td></tr>
+                <tr><td colSpan={7} className="p-4 text-center text-muted">Chargement...</td></tr>
               ) : rcBookings.length === 0 ? (
-                <tr><td colSpan={6} className="p-4 text-center text-muted">Aucune réservation</td></tr>
+                <tr><td colSpan={7} className="p-4 text-center text-muted">Aucune réservation</td></tr>
               ) : (
                 rcBookings.map((b) => (
                   <tr key={b.id} className="border-b border-border hover:bg-surface">
@@ -933,6 +955,38 @@ function RcTab({ token }: { token: string }) {
                           {b.rc_deadline}
                         </span>
                       ) : '-'}
+                    </td>
+                    <td className="p-3">
+                      {docs[b.id] && docs[b.id].length > 0 ? (
+                        <div className="flex flex-col gap-1">
+                          {docs[b.id].map((doc) => (
+                            <a
+                              key={doc.id}
+                              href={doc.file_url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-green-600 hover:underline text-xs font-medium"
+                            >
+                              <ExternalLink className="w-3 h-3" />
+                              Voir le fichier
+                            </a>
+                          ))}
+                        </div>
+                      ) : b.rc_upload_token ? (
+                        <button
+                          onClick={() => {
+                            const url = `${window.location.origin}/rc/${b.rc_upload_token}`
+                            navigator.clipboard.writeText(url)
+                            showFlash('Lien d\'upload copié !')
+                          }}
+                          className="text-xs text-blue-600 hover:underline"
+                          title="Copier le lien d'upload"
+                        >
+                          Copier le lien
+                        </button>
+                      ) : (
+                        <span className="text-xs text-muted">—</span>
+                      )}
                     </td>
                     <td className="p-3">{rcStatusBadge(b.rc_status, b.rc_deadline)}</td>
                     <td className="p-3">

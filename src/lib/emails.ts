@@ -260,8 +260,10 @@ export async function sendOwnerReplyNotification(guestName: string, guestEmail: 
   })
 }
 
-export async function sendRcRequestEmail(guestName: string, guestEmail: string, checkIn: string, rcDeadline: string) {
+export async function sendRcRequestEmail(guestName: string, guestEmail: string, checkIn: string, rcDeadline: string, rcUploadToken?: string) {
   const firstName = escapeHtml(guestName.split(' ')[0])
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://locationporthyeres.fr'
+  const uploadLink = rcUploadToken ? `${siteUrl}/rc/${rcUploadToken}` : null
 
   const html = `
     <div style="font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -292,10 +294,17 @@ export async function sendRcRequestEmail(guestName: string, guestEmail: string, 
           </ul>
         </div>
 
+        ${uploadLink ? `
+        <div style="text-align: center; margin: 24px 0;">
+          <a href="${uploadLink}" style="display: inline-block; background: #1e40af; color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">Déposer mon attestation</a>
+        </div>
+        <p style="text-align: center; color: #6b7280; font-size: 13px; margin-top: 8px;">Ou copiez ce lien : <a href="${uploadLink}" style="color: #1e40af;">${uploadLink}</a></p>
+        ` : `
         <div style="background: #f0f9ff; padding: 16px; border-radius: 8px; margin: 16px 0;">
           <h3 style="margin: 0 0 12px; color: #1e40af;">Où l'envoyer ?</h3>
           <p style="margin: 0;">Envoyez votre attestation (PDF, photo) à :<br><strong><a href="mailto:locationporthyeres@gmail.com">locationporthyeres@gmail.com</a></strong></p>
         </div>
+        `}
 
         <div style="background: #fefce8; padding: 16px; border-radius: 8px; margin: 16px 0;">
           <p style="margin: 0; color: #92400e; font-size: 14px;"><strong>Important :</strong> sans ce document avant le <strong>${formatDate(rcDeadline)}</strong>, votre réservation sera automatiquement annulée et 20% du montant total sera retenu au titre des frais de gestion.</p>
@@ -315,8 +324,10 @@ export async function sendRcRequestEmail(guestName: string, guestEmail: string, 
   })
 }
 
-export async function sendRcReminderEmail(guestName: string, guestEmail: string, rcDeadline: string) {
+export async function sendRcReminderEmail(guestName: string, guestEmail: string, rcDeadline: string, rcUploadToken?: string) {
   const firstName = escapeHtml(guestName.split(' ')[0])
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://locationporthyeres.fr'
+  const uploadLink = rcUploadToken ? `${siteUrl}/rc/${rcUploadToken}` : null
 
   const html = `
     <div style="font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -335,7 +346,13 @@ export async function sendRcReminderEmail(guestName: string, guestEmail: string,
 
         <p><strong>Sans ce document, votre réservation sera automatiquement annulée</strong> et 20% du montant total sera retenu au titre des frais de gestion.</p>
 
+        ${uploadLink ? `
+        <div style="text-align: center; margin: 24px 0;">
+          <a href="${uploadLink}" style="display: inline-block; background: #dc2626; color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">Déposer mon attestation maintenant</a>
+        </div>
+        ` : `
         <p>Envoyez votre attestation à :<br><strong><a href="mailto:locationporthyeres@gmail.com">locationporthyeres@gmail.com</a></strong></p>
+        `}
 
         <p style="color: #6b7280; font-size: 14px;">Si vous rencontrez des difficultés pour obtenir ce document, contactez-nous rapidement à locationporthyeres@gmail.com — nous trouverons une solution ensemble.</p>
         <p>Lucas</p>
@@ -351,14 +368,15 @@ export async function sendRcReminderEmail(guestName: string, guestEmail: string,
   })
 }
 
-export async function sendRcReceivedOwnerEmail(guestName: string, checkIn: string, checkOut: string) {
+export async function sendRcReceivedOwnerEmail(guestName: string, checkIn: string, checkOut: string, uploadedViaSite = false) {
   const safeName = escapeHtml(guestName)
 
   const html = `
     <div style="font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto;">
       <h2>✅ RC reçue</h2>
       <p><strong>${safeName}</strong> — Séjour du ${formatDate(checkIn)} au ${formatDate(checkOut)}</p>
-      <p>L'attestation de responsabilité civile a été marquée comme reçue.</p>
+      <p>L'attestation de responsabilité civile a été ${uploadedViaSite ? 'déposée par le voyageur sur le site' : 'marquée comme reçue'}.</p>
+      <p><a href="https://locationporthyeres.fr/admin">Voir dans l'admin →</a></p>
     </div>
   `
 
@@ -411,8 +429,10 @@ export async function sendRcCancellationEmail(guestName: string, guestEmail: str
   })
 }
 
-export async function sendRcExtensionEmail(guestName: string, guestEmail: string, newDeadline: string, checkIn: string) {
+export async function sendRcExtensionEmail(guestName: string, guestEmail: string, newDeadline: string, checkIn: string, rcUploadToken?: string) {
   const firstName = escapeHtml(guestName.split(' ')[0])
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://locationporthyeres.fr'
+  const uploadLink = rcUploadToken ? `${siteUrl}/rc/${rcUploadToken}` : null
 
   const html = `
     <div style="font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto;">
@@ -430,7 +450,13 @@ export async function sendRcExtensionEmail(guestName: string, guestEmail: string
           <p style="margin: 8px 0 0; font-size: 24px; font-weight: bold; color: #1e40af;">${formatDate(newDeadline)}</p>
         </div>
 
+        ${uploadLink ? `
+        <div style="text-align: center; margin: 24px 0;">
+          <a href="${uploadLink}" style="display: inline-block; background: #1e40af; color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">Déposer mon attestation</a>
+        </div>
+        ` : `
         <p>Envoyez votre attestation à :<br><strong><a href="mailto:locationporthyeres@gmail.com">locationporthyeres@gmail.com</a></strong></p>
+        `}
 
         <p>Merci de votre compréhension.</p>
         <p>À bientôt,<br><strong>Lucas</strong></p>

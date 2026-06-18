@@ -30,7 +30,7 @@ export async function GET(req: NextRequest) {
 
     for (const booking of reminders ?? []) {
       try {
-        await sendRcReminderEmail(booking.guest_name, booking.guest_email, booking.rc_deadline)
+        await sendRcReminderEmail(booking.guest_name, booking.guest_email, booking.rc_deadline, booking.rc_upload_token)
         await supabaseAdmin
           .from('bookings')
           .update({ rc_reminder_sent: true })

@@ -56,7 +56,7 @@ export async function PATCH(req: NextRequest) {
       })
       .eq('id', id)
 
-    await sendRcExtensionEmail(booking.guest_name, booking.guest_email, new_deadline, booking.check_in)
+    await sendRcExtensionEmail(booking.guest_name, booking.guest_email, new_deadline, booking.check_in, booking.rc_upload_token)
     return NextResponse.json({ ok: true })
   }
 

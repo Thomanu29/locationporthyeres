@@ -52,6 +52,7 @@ export interface Booking {
   rc_notes: string | null
   rc_reminder_sent: boolean
   rc_consent: boolean
+  rc_upload_token: string | null
 }
 
 export interface PricingRule {
