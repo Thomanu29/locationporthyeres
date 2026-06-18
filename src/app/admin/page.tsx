@@ -18,11 +18,17 @@ import {
   ImageIcon,
   Upload,
   MessageSquare,
+  Shield,
+  CheckCircle,
+  Clock,
+  XCircle,
+  CalendarPlus,
+  Loader2,
 } from 'lucide-react'
 import type { Booking, PricingRule, BlockedDate, Review, Guest, Photo, BookingDocument } from '@/lib/types'
 import MessagesTab from '@/components/admin/MessagesTab'
 
-type Tab = 'dashboard' | 'bookings' | 'guests' | 'pricing' | 'blocked' | 'reviews' | 'photos' | 'messages'
+type Tab = 'dashboard' | 'bookings' | 'guests' | 'pricing' | 'blocked' | 'reviews' | 'photos' | 'messages' | 'rc'
 
 export default function AdminPage() {
   const [authenticated, setAuthenticated] = useState(false)
@@ -76,6 +82,7 @@ export default function AdminPage() {
     { key: 'reviews', label: 'Avis', icon: Star },
     { key: 'photos', label: 'Photos', icon: ImageIcon },
     { key: 'messages', label: 'Messages', icon: MessageSquare },
+    { key: 'rc', label: 'RC Assurances', icon: Shield },
   ]
 
   return (
@@ -119,6 +126,7 @@ export default function AdminPage() {
         {activeTab === 'reviews' && <ReviewsTab token={token} />}
         {activeTab === 'photos' && <PhotosTab token={token} />}
         {activeTab === 'messages' && <MessagesTab token={token} />}
+        {activeTab === 'rc' && <RcTab token={token} />}
       </div>
     </div>
   )
@@ -683,7 +691,7 @@ const PHOTO_CATEGORIES = [
   { value: 'chambre', label: 'Chambre' },
   { value: 'cuisine', label: 'Cuisine' },
   { value: 'salle-de-bain', label: 'Salle de bain' },
-  { value: 'terrasse', label: 'Terrasse' },
+  { value: 'loggia', label: 'Loggia' },
   { value: 'port', label: 'Port / Extérieur' },
 ]
 
@@ -792,6 +800,234 @@ function PhotosTab({ token }: { token: string }) {
             </div>
           )
         })
+      )}
+    </div>
+  )
+}
+
+function RcTab({ token }: { token: string }) {
+  const { data: bookings, loading, refresh } = useFetch<Booking[]>('/api/admin/bookings', token)
+  const [actionLoading, setActionLoading] = useState<string | null>(null)
+  const [flash, setFlash] = useState<string | null>(null)
+  const [extendForm, setExtendForm] = useState<{ id: string; deadline: string; notes: string } | null>(null)
+
+  const rcBookings = (bookings ?? []).filter((b) => b.payment_status === 'paid' || b.rc_status === 'cancelled_no_rc')
+
+  const pending = rcBookings.filter((b) => b.rc_status === 'pending' || b.rc_status === 'extended')
+  const received = rcBookings.filter((b) => b.rc_status === 'received')
+  const cancelled = rcBookings.filter((b) => b.rc_status === 'cancelled_no_rc')
+
+  const today = new Date().toISOString().split('T')[0]
+  const expiredToday = pending.filter((b) => b.rc_deadline && b.rc_deadline <= today)
+
+  const showFlash = (msg: string) => {
+    setFlash(msg)
+    setTimeout(() => setFlash(null), 3000)
+  }
+
+  const doAction = async (id: string, action: string, extra?: Record<string, string>) => {
+    setActionLoading(id)
+    try {
+      const res = await fetch(`/api/admin/rc?id=${encodeURIComponent(id)}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ action, ...extra }),
+      })
+      if (res.ok) {
+        if (action === 'received') showFlash('RC marquée comme reçue')
+        if (action === 'extend') showFlash(`Deadline prolongée`)
+        if (action === 'cancel') showFlash('Réservation annulée — remboursement 80%')
+        refresh()
+      }
+    } catch { /* ignore */ }
+    setActionLoading(null)
+    setExtendForm(null)
+  }
+
+  const rcStatusBadge = (status: string, deadline: string | null) => {
+    switch (status) {
+      case 'pending':
+        return <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">En attente</span>
+      case 'received':
+        return <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">Reçue</span>
+      case 'extended':
+        return (
+          <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+            Prolongé → {deadline}
+          </span>
+        )
+      case 'cancelled_no_rc':
+        return <span className="px-2 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">Annulée (RC)</span>
+      default:
+        return null
+    }
+  }
+
+  return (
+    <div className="space-y-6">
+      {flash && (
+        <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-green-800 text-sm font-medium">
+          {flash}
+        </div>
+      )}
+
+      <div className="grid grid-cols-3 gap-4">
+        <div className="bg-white rounded-xl p-4 border border-border">
+          <div className="flex items-center gap-2 text-yellow-600 mb-2">
+            <Clock className="w-4 h-4" />
+            <span className="text-sm">En attente</span>
+          </div>
+          <p className="text-2xl font-bold">{pending.length}</p>
+        </div>
+        <div className="bg-white rounded-xl p-4 border border-border">
+          <div className="flex items-center gap-2 text-green-600 mb-2">
+            <CheckCircle className="w-4 h-4" />
+            <span className="text-sm">Reçues</span>
+          </div>
+          <p className="text-2xl font-bold">{received.length}</p>
+        </div>
+        <div className="bg-white rounded-xl p-4 border border-border">
+          <div className="flex items-center gap-2 text-red-600 mb-2">
+            <XCircle className="w-4 h-4" />
+            <span className="text-sm">Expirées aujourd&apos;hui</span>
+          </div>
+          <p className="text-2xl font-bold">{expiredToday.length}</p>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-xl border border-border">
+        <div className="p-4 border-b border-border">
+          <h3 className="font-semibold flex items-center gap-2">
+            <Shield className="w-4 h-4 text-primary" />
+            Suivi RC — Toutes les réservations payées
+          </h3>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-border text-left">
+                <th className="p-3 font-medium">Voyageur</th>
+                <th className="p-3 font-medium">Email</th>
+                <th className="p-3 font-medium">Arrivée</th>
+                <th className="p-3 font-medium">Deadline RC</th>
+                <th className="p-3 font-medium">Statut RC</th>
+                <th className="p-3 font-medium">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {loading ? (
+                <tr><td colSpan={6} className="p-4 text-center text-muted">Chargement...</td></tr>
+              ) : rcBookings.length === 0 ? (
+                <tr><td colSpan={6} className="p-4 text-center text-muted">Aucune réservation</td></tr>
+              ) : (
+                rcBookings.map((b) => (
+                  <tr key={b.id} className="border-b border-border hover:bg-surface">
+                    <td className="p-3 font-medium">{b.guest_name}</td>
+                    <td className="p-3">
+                      <a href={`mailto:${b.guest_email}`} className="text-primary hover:underline text-xs">{b.guest_email}</a>
+                    </td>
+                    <td className="p-3">{b.check_in}</td>
+                    <td className="p-3">
+                      {b.rc_deadline ? (
+                        <span className={b.rc_deadline <= today && b.rc_status === 'pending' ? 'text-red-600 font-semibold' : ''}>
+                          {b.rc_deadline}
+                        </span>
+                      ) : '-'}
+                    </td>
+                    <td className="p-3">{rcStatusBadge(b.rc_status, b.rc_deadline)}</td>
+                    <td className="p-3">
+                      {(b.rc_status === 'pending' || b.rc_status === 'extended') && (
+                        <div className="flex items-center gap-1">
+                          <button
+                            onClick={() => doAction(b.id, 'received')}
+                            disabled={actionLoading === b.id}
+                            className="px-2 py-1 text-xs bg-green-500 text-white rounded hover:bg-green-600 transition disabled:opacity-50"
+                            title="Marquer RC reçue"
+                          >
+                            {actionLoading === b.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <CheckCircle className="w-3 h-3" />}
+                          </button>
+                          <button
+                            onClick={() => setExtendForm({ id: b.id, deadline: b.rc_deadline ?? '', notes: '' })}
+                            className="px-2 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600 transition"
+                            title="Prolonger deadline"
+                          >
+                            <CalendarPlus className="w-3 h-3" />
+                          </button>
+                          <button
+                            onClick={() => {
+                              if (confirm(`Annuler la réservation de ${b.guest_name} et retenir 20% (${(Number(b.total_amount) * 0.20).toFixed(0)}€) ?`)) {
+                                doAction(b.id, 'cancel')
+                              }
+                            }}
+                            disabled={actionLoading === b.id}
+                            className="px-2 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600 transition disabled:opacity-50"
+                            title="Annuler (retenir 20%)"
+                          >
+                            <XCircle className="w-3 h-3" />
+                          </button>
+                        </div>
+                      )}
+                      {b.rc_status === 'received' && (
+                        <span className="text-green-600 text-xs">
+                          {b.rc_received_at ? new Date(b.rc_received_at).toLocaleDateString('fr-FR') : ''}
+                        </span>
+                      )}
+                      {b.rc_notes && (
+                        <p className="text-xs text-muted mt-1">{b.rc_notes}</p>
+                      )}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {extendForm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="bg-white rounded-xl p-6 w-full max-w-md shadow-2xl">
+            <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+              <CalendarPlus className="w-5 h-5 text-blue-500" />
+              Prolonger la deadline RC
+            </h3>
+            <div className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium mb-1">Nouvelle deadline</label>
+                <input
+                  type="date"
+                  value={extendForm.deadline}
+                  onChange={(e) => setExtendForm({ ...extendForm, deadline: e.target.value })}
+                  className="w-full border border-border rounded-lg px-3 py-2 text-sm"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-1">Raison (optionnel)</label>
+                <input
+                  value={extendForm.notes}
+                  onChange={(e) => setExtendForm({ ...extendForm, notes: e.target.value })}
+                  placeholder="Ex: client en attente de son assureur"
+                  className="w-full border border-border rounded-lg px-3 py-2 text-sm"
+                />
+              </div>
+            </div>
+            <div className="flex gap-3 mt-4">
+              <button
+                onClick={() => doAction(extendForm.id, 'extend', { new_deadline: extendForm.deadline, notes: extendForm.notes })}
+                disabled={!extendForm.deadline || actionLoading === extendForm.id}
+                className="flex-1 bg-blue-500 text-white py-2 rounded-lg font-medium hover:bg-blue-600 transition disabled:opacity-50"
+              >
+                Prolonger
+              </button>
+              <button
+                onClick={() => setExtendForm(null)}
+                className="flex-1 bg-surface py-2 rounded-lg font-medium hover:bg-gray-200 transition"
+              >
+                Annuler
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

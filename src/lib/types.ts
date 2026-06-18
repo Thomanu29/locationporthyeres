@@ -44,6 +44,14 @@ export interface Booking {
   external_uid: string | null
   notes: string | null
   status: 'confirmed' | 'cancelled' | 'completed'
+  deposit_amount?: number
+  stripe_deposit_intent?: string | null
+  rc_status: 'pending' | 'received' | 'extended' | 'cancelled_no_rc'
+  rc_deadline: string | null
+  rc_received_at: string | null
+  rc_notes: string | null
+  rc_reminder_sent: boolean
+  rc_consent: boolean
 }
 
 export interface PricingRule {

@@ -49,6 +49,7 @@ export default function ReservationPage() {
   const [submitting, setSubmitting] = useState(false)
   const [contractOpen, setContractOpen] = useState(false)
   const [contractAccepted, setContractAccepted] = useState(false)
+  const [rcConsent, setRcConsent] = useState(false)
 
   const {
     register,
@@ -129,6 +130,7 @@ export default function ReservationPage() {
           check_out: format(dateRange.to, 'yyyy-MM-dd'),
           notes: formData.notes || undefined,
           marketing_consent: formData.marketing_consent || false,
+          rc_consent: rcConsent,
         }),
       })
 
@@ -326,9 +328,23 @@ export default function ReservationPage() {
                   </span>
                 </label>
 
+                <label className="flex items-start gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={rcConsent}
+                    onChange={(e) => setRcConsent(e.target.checked)}
+                    className="mt-1 rounded border-border"
+                  />
+                  <span className="text-sm text-foreground">
+                    {locale === 'en'
+                      ? 'I agree to provide a valid civil liability insurance certificate within 7 days of my booking. Without this document, my booking will be cancelled and 20% of the total amount will be retained as management fees.'
+                      : "Je m'engage à fournir une attestation d'assurance responsabilité civile valide dans les 7 jours suivant ma réservation. Sans ce document, ma réservation sera annulée et 20% du montant total sera retenu au titre des frais de gestion."}
+                  </span>
+                </label>
+
                 <button
                   type="submit"
-                  disabled={!dateRange?.from || !dateRange?.to || !price || submitting || !!priceError || !contractAccepted}
+                  disabled={!dateRange?.from || !dateRange?.to || !price || submitting || !!priceError || !contractAccepted || !rcConsent}
                   className="w-full bg-primary hover:bg-primary-dark disabled:bg-gray-300 text-white font-semibold py-3.5 rounded-lg text-lg transition flex items-center justify-center gap-2"
                 >
                   {submitting ? (

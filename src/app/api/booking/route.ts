@@ -15,6 +15,7 @@ const bookingSchema = z.object({
   check_out: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
   notes: z.string().optional(),
   marketing_consent: z.boolean().optional(),
+  rc_consent: z.boolean(),
 })
 
 export async function POST(req: NextRequest) {
@@ -27,6 +28,10 @@ export async function POST(req: NextRequest) {
     }
 
     const data = parsed.data
+
+    if (!data.rc_consent) {
+      return NextResponse.json({ error: 'Vous devez accepter les conditions relatives à la responsabilité civile' }, { status: 400 })
+    }
 
     const unavailable = await getUnavailableDates()
     const startDate = new Date(data.check_in)
@@ -137,6 +142,7 @@ export async function POST(req: NextRequest) {
       metadata: {
         booking_id: booking.id,
         marketing_consent: data.marketing_consent ? 'true' : 'false',
+        rc_consent: data.rc_consent ? 'true' : 'false',
         guest_name: data.guest_name,
         guest_phone: data.guest_phone ?? '',
       },

@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { stripe } from '@/lib/stripe'
 import { supabaseAdmin } from '@/lib/supabase'
-import { sendConfirmationEmail, sendOwnerNotification } from '@/lib/emails'
+import { sendConfirmationEmail, sendOwnerNotification, sendRcRequestEmail } from '@/lib/emails'
+import { addDays, format } from 'date-fns'
 
 export async function POST(req: NextRequest) {
   const body = await req.text()
@@ -26,11 +27,16 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No booking_id in metadata' }, { status: 400 })
     }
 
+    const rcDeadline = format(addDays(new Date(), 7), 'yyyy-MM-dd')
+
     await supabaseAdmin
       .from('bookings')
       .update({
         payment_status: 'paid',
         stripe_payment_intent: session.payment_intent as string,
+        rc_deadline: rcDeadline,
+        rc_status: 'pending',
+        rc_consent: session.metadata?.rc_consent === 'true',
       })
       .eq('id', bookingId)
 
@@ -80,6 +86,7 @@ export async function POST(req: NextRequest) {
       await Promise.all([
         sendConfirmationEmail(emailData),
         sendOwnerNotification(emailData),
+        sendRcRequestEmail(booking.guest_name, booking.guest_email, booking.check_in, rcDeadline),
       ])
 
       try {

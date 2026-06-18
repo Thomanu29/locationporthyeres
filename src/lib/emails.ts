@@ -260,6 +260,229 @@ export async function sendOwnerReplyNotification(guestName: string, guestEmail: 
   })
 }
 
+export async function sendRcRequestEmail(guestName: string, guestEmail: string, checkIn: string, rcDeadline: string) {
+  const firstName = escapeHtml(guestName.split(' ')[0])
+
+  const html = `
+    <div style="font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto;">
+      <div style="background: linear-gradient(135deg, #b45309, #d97706); padding: 32px; text-align: center; border-radius: 8px 8px 0 0;">
+        <h1 style="color: white; margin: 0; font-size: 24px;">Une dernière formalité</h1>
+        <p style="color: #fef3c7; margin: 8px 0 0;">Appartement du Port · Hyères</p>
+      </div>
+      <div style="padding: 32px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
+        <p>Bonjour ${firstName},</p>
+        <p>Merci pour votre réservation ! Pour finaliser votre dossier, nous avons besoin de votre <strong>attestation d'assurance responsabilité civile villégiature</strong>.</p>
+
+        <div style="background: #fef2f2; border: 2px solid #ef4444; border-radius: 8px; padding: 16px; margin: 20px 0; text-align: center;">
+          <p style="margin: 0; font-size: 14px; color: #991b1b;">Date limite d'envoi</p>
+          <p style="margin: 8px 0 0; font-size: 24px; font-weight: bold; color: #dc2626;">${formatDate(rcDeadline)}</p>
+        </div>
+
+        <div style="background: #f0f9ff; padding: 16px; border-radius: 8px; margin: 16px 0;">
+          <h3 style="margin: 0 0 12px; color: #1e40af;">Qu'est-ce que c'est ?</h3>
+          <p style="margin: 0;">L'assurance responsabilité civile villégiature couvre les risques locatifs (incendie, dégât des eaux, etc.) pendant votre séjour. <strong>Elle est très probablement déjà incluse dans votre assurance habitation.</strong></p>
+        </div>
+
+        <div style="background: #f0f9ff; padding: 16px; border-radius: 8px; margin: 16px 0;">
+          <h3 style="margin: 0 0 12px; color: #1e40af;">Comment l'obtenir ?</h3>
+          <ul style="margin: 0; padding-left: 20px;">
+            <li>Connectez-vous à l'espace client de votre assureur</li>
+            <li>Ou appelez votre assurance habitation</li>
+            <li>Demandez une « attestation de responsabilité civile villégiature »</li>
+          </ul>
+        </div>
+
+        <div style="background: #f0f9ff; padding: 16px; border-radius: 8px; margin: 16px 0;">
+          <h3 style="margin: 0 0 12px; color: #1e40af;">Où l'envoyer ?</h3>
+          <p style="margin: 0;">Envoyez votre attestation (PDF, photo) à :<br><strong><a href="mailto:locationporthyeres@gmail.com">locationporthyeres@gmail.com</a></strong></p>
+        </div>
+
+        <div style="background: #fefce8; padding: 16px; border-radius: 8px; margin: 16px 0;">
+          <p style="margin: 0; color: #92400e; font-size: 14px;"><strong>Important :</strong> sans ce document avant le <strong>${formatDate(rcDeadline)}</strong>, votre réservation sera automatiquement annulée et 20% du montant total sera retenu au titre des frais de gestion.</p>
+        </div>
+
+        <p style="color: #6b7280; font-size: 14px;">Si vous avez la moindre question ou difficulté, n'hésitez pas à nous contacter à locationporthyeres@gmail.com.</p>
+        <p>À bientôt,<br><strong>Lucas</strong></p>
+      </div>
+    </div>
+  `
+
+  await resend.emails.send({
+    from: 'Appartement du Port <noreply@locationporthyeres.fr>',
+    to: guestEmail,
+    subject: `⚠️ Action requise — Votre attestation RC pour votre séjour du ${formatDate(checkIn)}`,
+    html,
+  })
+}
+
+export async function sendRcReminderEmail(guestName: string, guestEmail: string, rcDeadline: string) {
+  const firstName = escapeHtml(guestName.split(' ')[0])
+
+  const html = `
+    <div style="font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto;">
+      <div style="background: linear-gradient(135deg, #dc2626, #ef4444); padding: 32px; text-align: center; border-radius: 8px 8px 0 0;">
+        <h1 style="color: white; margin: 0; font-size: 24px;">Rappel urgent — RC manquante</h1>
+        <p style="color: #fecaca; margin: 8px 0 0;">Appartement du Port · Hyères</p>
+      </div>
+      <div style="padding: 32px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
+        <p>Bonjour ${firstName},</p>
+        <p>Nous n'avons pas encore reçu votre attestation d'assurance responsabilité civile villégiature.</p>
+
+        <div style="background: #fef2f2; border: 2px solid #ef4444; border-radius: 8px; padding: 16px; margin: 20px 0; text-align: center;">
+          <p style="margin: 0; font-size: 16px; font-weight: bold; color: #dc2626;">Il vous reste 48h</p>
+          <p style="margin: 8px 0 0; font-size: 14px; color: #991b1b;">Date limite : <strong>${formatDate(rcDeadline)}</strong></p>
+        </div>
+
+        <p><strong>Sans ce document, votre réservation sera automatiquement annulée</strong> et 20% du montant total sera retenu au titre des frais de gestion.</p>
+
+        <p>Envoyez votre attestation à :<br><strong><a href="mailto:locationporthyeres@gmail.com">locationporthyeres@gmail.com</a></strong></p>
+
+        <p style="color: #6b7280; font-size: 14px;">Si vous rencontrez des difficultés pour obtenir ce document, contactez-nous rapidement à locationporthyeres@gmail.com — nous trouverons une solution ensemble.</p>
+        <p>Lucas</p>
+      </div>
+    </div>
+  `
+
+  await resend.emails.send({
+    from: 'Appartement du Port <noreply@locationporthyeres.fr>',
+    to: guestEmail,
+    subject: `🔴 Rappel urgent — RC manquante, délai expirant dans 48h`,
+    html,
+  })
+}
+
+export async function sendRcReceivedOwnerEmail(guestName: string, checkIn: string, checkOut: string) {
+  const safeName = escapeHtml(guestName)
+
+  const html = `
+    <div style="font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2>✅ RC reçue</h2>
+      <p><strong>${safeName}</strong> — Séjour du ${formatDate(checkIn)} au ${formatDate(checkOut)}</p>
+      <p>L'attestation de responsabilité civile a été marquée comme reçue.</p>
+    </div>
+  `
+
+  await resend.emails.send({
+    from: 'Appartement du Port <noreply@locationporthyeres.fr>',
+    to: process.env.NOTIFICATION_EMAIL ?? 'locationporthyeres@gmail.com',
+    subject: `✅ RC reçue — ${safeName} · ${formatDate(checkIn)}`,
+    html,
+  })
+}
+
+export async function sendRcCancellationEmail(guestName: string, guestEmail: string, totalAmount: number) {
+  const firstName = escapeHtml(guestName.split(' ')[0])
+  const retained = (totalAmount * 0.20).toFixed(2)
+  const refunded = (totalAmount * 0.80).toFixed(2)
+
+  const html = `
+    <div style="font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto;">
+      <div style="background: linear-gradient(135deg, #991b1b, #dc2626); padding: 32px; text-align: center; border-radius: 8px 8px 0 0;">
+        <h1 style="color: white; margin: 0; font-size: 24px;">Réservation annulée</h1>
+        <p style="color: #fecaca; margin: 8px 0 0;">Appartement du Port · Hyères</p>
+      </div>
+      <div style="padding: 32px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
+        <p>Bonjour ${firstName},</p>
+        <p>Malgré nos rappels, nous n'avons pas reçu votre attestation d'assurance responsabilité civile villégiature dans le délai imparti.</p>
+        <p>Conformément aux conditions acceptées lors de votre réservation, <strong>votre réservation a été annulée</strong>.</p>
+
+        <div style="background: #f9fafb; padding: 16px; border-radius: 8px; margin: 16px 0;">
+          <table style="width: 100%; border-collapse: collapse;">
+            <tr><td style="padding: 8px;">Montant total</td><td style="padding: 8px; text-align: right;">${totalAmount.toFixed(2)}€</td></tr>
+            <tr><td style="padding: 8px;">Montant remboursé (80%)</td><td style="padding: 8px; text-align: right; color: #16a34a; font-weight: bold;">${refunded}€</td></tr>
+            <tr style="border-top: 2px solid #e5e7eb;"><td style="padding: 8px;">Frais de gestion retenus (20%)</td><td style="padding: 8px; text-align: right; color: #dc2626; font-weight: bold;">${retained}€</td></tr>
+          </table>
+        </div>
+
+        <p>Le remboursement de ${refunded}€ sera effectué sur votre carte bancaire sous quelques jours ouvrés.</p>
+
+        <p>Si vous souhaitez re-réserver, nous serons ravis de vous accueillir. Pensez simplement à préparer votre attestation RC dès la réservation.</p>
+
+        <p>Cordialement,<br><strong>Lucas</strong></p>
+      </div>
+    </div>
+  `
+
+  await resend.emails.send({
+    from: 'Appartement du Port <noreply@locationporthyeres.fr>',
+    to: guestEmail,
+    subject: `❌ Annulation de votre réservation — RC non fournie`,
+    html,
+  })
+}
+
+export async function sendRcExtensionEmail(guestName: string, guestEmail: string, newDeadline: string, checkIn: string) {
+  const firstName = escapeHtml(guestName.split(' ')[0])
+
+  const html = `
+    <div style="font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto;">
+      <div style="background: linear-gradient(135deg, #1e40af, #3b82f6); padding: 32px; text-align: center; border-radius: 8px 8px 0 0;">
+        <h1 style="color: white; margin: 0; font-size: 24px;">Délai prolongé</h1>
+        <p style="color: #dbeafe; margin: 8px 0 0;">Appartement du Port · Hyères</p>
+      </div>
+      <div style="padding: 32px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
+        <p>Bonjour ${firstName},</p>
+        <p>Suite à votre contact, nous avons bien pris note de votre situation.</p>
+        <p>Le délai pour nous envoyer votre attestation d'assurance responsabilité civile a été prolongé.</p>
+
+        <div style="background: #eff6ff; border: 2px solid #3b82f6; border-radius: 8px; padding: 16px; margin: 20px 0; text-align: center;">
+          <p style="margin: 0; font-size: 14px; color: #1e40af;">Nouvelle date limite</p>
+          <p style="margin: 8px 0 0; font-size: 24px; font-weight: bold; color: #1e40af;">${formatDate(newDeadline)}</p>
+        </div>
+
+        <p>Envoyez votre attestation à :<br><strong><a href="mailto:locationporthyeres@gmail.com">locationporthyeres@gmail.com</a></strong></p>
+
+        <p>Merci de votre compréhension.</p>
+        <p>À bientôt,<br><strong>Lucas</strong></p>
+      </div>
+    </div>
+  `
+
+  await resend.emails.send({
+    from: 'Appartement du Port <noreply@locationporthyeres.fr>',
+    to: guestEmail,
+    subject: `📅 Délai prolongé — Votre attestation RC pour le ${formatDate(checkIn)}`,
+    html,
+  })
+}
+
+export async function sendRcOwnerAlert(bookings: Array<{ guest_name: string; guest_email: string; check_in: string; rc_deadline: string }>) {
+  const rows = bookings.map((b) => `
+    <tr>
+      <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${escapeHtml(b.guest_name)}</td>
+      <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${escapeHtml(b.guest_email)}</td>
+      <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${formatDate(b.check_in)}</td>
+      <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${formatDate(b.rc_deadline)}</td>
+    </tr>
+  `).join('')
+
+  const html = `
+    <div style="font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2>⚠️ RC manquantes — Alerte J+3</h2>
+      <p>${bookings.length} réservation(s) n'ont pas encore fourni leur RC et la deadline expire dans 4 jours :</p>
+      <table style="width: 100%; border-collapse: collapse;">
+        <thead>
+          <tr style="background: #f9fafb;">
+            <th style="padding: 8px; text-align: left;">Client</th>
+            <th style="padding: 8px; text-align: left;">Email</th>
+            <th style="padding: 8px; text-align: left;">Arrivée</th>
+            <th style="padding: 8px; text-align: left;">Deadline</th>
+          </tr>
+        </thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <p style="margin-top: 16px;"><a href="https://locationporthyeres.fr/admin">Gérer dans l'admin →</a></p>
+    </div>
+  `
+
+  await resend.emails.send({
+    from: 'Appartement du Port <noreply@locationporthyeres.fr>',
+    to: process.env.NOTIFICATION_EMAIL ?? 'locationporthyeres@gmail.com',
+    subject: `⚠️ ${bookings.length} RC manquante(s) — Action requise`,
+    html,
+  })
+}
+
 function formatDate(dateStr: string): string {
   const date = new Date(dateStr)
   return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
