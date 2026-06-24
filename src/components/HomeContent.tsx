@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import Image from 'next/image'
+import { useState } from 'react'
 import {
   Star,
   Car,
@@ -16,6 +17,9 @@ import {
   Plane,
   ShoppingCart,
   Waves,
+  X,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react'
 import { useTranslation } from '@/lib/i18n'
 
@@ -166,35 +170,7 @@ export default function HomeContent({ reviews, galleryPhotos, heroPhoto, avgRati
       </section>
 
       {/* Gallery */}
-      <section className="py-20 bg-surface">
-        <div className="max-w-6xl mx-auto px-4">
-          <h2 className="text-3xl font-bold text-center mb-12">{t('home.gallery.title')}</h2>
-          {galleryPhotos.length > 0 ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {galleryPhotos.map((photo) => (
-                <div key={photo.id} className="relative aspect-[4/3] rounded-xl overflow-hidden bg-gray-200">
-                  <Image
-                    src={photo.url}
-                    alt={photo.alt || photo.category}
-                    fill
-                    loading="lazy"
-                    className="object-cover hover:scale-105 transition-transform duration-300"
-                    sizes="(max-width: 768px) 50vw, 33vw"
-                  />
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-              {galleryPlaceholders.map((label) => (
-                <div key={label} className="aspect-[4/3] rounded-xl bg-gradient-to-br from-blue-100 to-blue-50 flex items-center justify-center">
-                  <span className="text-primary/50 font-medium">{label}</span>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
+      <GallerySection galleryPhotos={galleryPhotos} galleryPlaceholders={galleryPlaceholders} title={t('home.gallery.title')} />
 
       {/* Reviews */}
       <section id="avis" className="py-20">
@@ -237,5 +213,145 @@ export default function HomeContent({ reviews, galleryPhotos, heroPhoto, avgRati
         </div>
       </section>
     </main>
+  )
+}
+
+const GALLERY_CATEGORIES = [
+  { value: 'salon', label: 'Salon' },
+  { value: 'chambre', label: 'Chambre' },
+  { value: 'loggia', label: 'Loggia' },
+  { value: 'cuisine', label: 'Cuisine' },
+  { value: 'salle-de-bain', label: 'Salle de bain' },
+  { value: 'port', label: 'Vue sur le port' },
+]
+
+function GallerySection({
+  galleryPhotos,
+  galleryPlaceholders,
+  title,
+}: {
+  galleryPhotos: HomeContentProps['galleryPhotos']
+  galleryPlaceholders: string[]
+  title: string
+}) {
+  const [openCategory, setOpenCategory] = useState<string | null>(null)
+  const [lightboxIndex, setLightboxIndex] = useState(0)
+
+  const grouped: Record<string, typeof galleryPhotos> = {}
+  for (const photo of galleryPhotos) {
+    const cat = GALLERY_CATEGORIES.find((c) => c.value === photo.category) ? photo.category : '_other'
+    if (!grouped[cat]) grouped[cat] = []
+    grouped[cat].push(photo)
+  }
+
+  const openPhotos = openCategory ? (grouped[openCategory] ?? []) : []
+  const openLabel = GALLERY_CATEGORIES.find((c) => c.value === openCategory)?.label ?? ''
+
+  return (
+    <section className="py-20 bg-surface">
+      <div className="max-w-6xl mx-auto px-4">
+        <h2 className="text-3xl font-bold text-center mb-12">{title}</h2>
+
+        {galleryPhotos.length > 0 ? (
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+            {GALLERY_CATEGORIES.map((cat) => {
+              const photos = grouped[cat.value]
+              if (!photos || photos.length === 0) return null
+              const cover = photos[0]
+              return (
+                <div
+                  key={cat.value}
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => { setOpenCategory(cat.value); setLightboxIndex(0) }}
+                  onKeyDown={(e) => { if (e.key === 'Enter') { setOpenCategory(cat.value); setLightboxIndex(0) } }}
+                  className="group relative aspect-[4/3] rounded-xl overflow-hidden bg-gray-200 cursor-pointer"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={cover.url}
+                    alt={cover.alt || cat.label}
+                    loading="lazy"
+                    className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+                  <div className="absolute bottom-0 left-0 right-0 p-4">
+                    <h3 className="text-white font-semibold text-lg">{cat.label}</h3>
+                    <p className="text-white/70 text-sm">{photos.length} photo{photos.length > 1 ? 's' : ''}</p>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+            {galleryPlaceholders.map((label) => (
+              <div key={label} className="aspect-[4/3] rounded-xl bg-gradient-to-br from-blue-100 to-blue-50 flex items-center justify-center">
+                <span className="text-primary/50 font-medium">{label}</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {openCategory && openPhotos.length > 0 && (
+        <div
+          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center"
+          onClick={() => setOpenCategory(null)}
+        >
+          <button
+            onClick={() => setOpenCategory(null)}
+            className="absolute top-4 right-4 text-white/80 hover:text-white z-10"
+          >
+            <X className="w-8 h-8" />
+          </button>
+
+          <p className="absolute top-4 left-4 text-white font-semibold text-lg z-10">
+            {openLabel} — {lightboxIndex + 1}/{openPhotos.length}
+          </p>
+
+          {openPhotos.length > 1 && (
+            <>
+              <button
+                onClick={(e) => { e.stopPropagation(); setLightboxIndex((lightboxIndex - 1 + openPhotos.length) % openPhotos.length) }}
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-white/80 hover:text-white bg-black/40 rounded-full p-2 z-10"
+              >
+                <ChevronLeft className="w-6 h-6" />
+              </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); setLightboxIndex((lightboxIndex + 1) % openPhotos.length) }}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-white/80 hover:text-white bg-black/40 rounded-full p-2 z-10"
+              >
+                <ChevronRight className="w-6 h-6" />
+              </button>
+            </>
+          )}
+
+          <div
+            className="relative w-full max-w-4xl aspect-[4/3] mx-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={openPhotos[lightboxIndex].url}
+              alt={openPhotos[lightboxIndex].alt || openLabel}
+              className="absolute inset-0 w-full h-full object-contain"
+            />
+          </div>
+
+          {openPhotos.length > 1 && (
+            <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex gap-2 z-10">
+              {openPhotos.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={(e) => { e.stopPropagation(); setLightboxIndex(i) }}
+                  className={`w-2.5 h-2.5 rounded-full transition ${i === lightboxIndex ? 'bg-white' : 'bg-white/40'}`}
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+    </section>
   )
 }

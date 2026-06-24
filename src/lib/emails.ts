@@ -136,7 +136,7 @@ export async function sendReminderEmail(guestName: string, guestEmail: string, c
 
         <div style="background: #f0f9ff; padding: 16px; border-radius: 8px; margin: 16px 0;">
           <h3 style="margin: 0 0 12px; color: #1e40af;">📶 Wi-Fi</h3>
-          <p style="margin: 0;">Nom du réseau : __________<br>Mot de passe : __________</p>
+          <p style="margin: 0;">Nom du réseau : <strong>Bbox-689FADB2</strong><br>Mot de passe : <strong>NZCbDF64XTs3rt54xf</strong></p>
         </div>
 
         <p>🛏️ Le logement est préparé avec le linge de lit et les serviettes de toilette.</p>
