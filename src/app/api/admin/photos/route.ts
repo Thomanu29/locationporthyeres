@@ -66,6 +66,41 @@ export async function POST(req: NextRequest) {
   return NextResponse.json(photo, { status: 201 })
 }
 
+export async function PATCH(req: NextRequest) {
+  const denied = verifyAdmin(req)
+  if (denied) return denied
+
+  const { id } = await req.json()
+  if (!id) return NextResponse.json({ error: 'id requis' }, { status: 400 })
+
+  const { data: photo } = await supabaseAdmin
+    .from('photos')
+    .select('id, category, is_featured')
+    .eq('id', id)
+    .single()
+
+  if (!photo) return NextResponse.json({ error: 'Photo introuvable' }, { status: 404 })
+
+  if (!photo.is_featured) {
+    await supabaseAdmin
+      .from('photos')
+      .update({ is_featured: false })
+      .eq('category', photo.category)
+
+    await supabaseAdmin
+      .from('photos')
+      .update({ is_featured: true })
+      .eq('id', id)
+  } else {
+    await supabaseAdmin
+      .from('photos')
+      .update({ is_featured: false })
+      .eq('id', id)
+  }
+
+  return NextResponse.json({ ok: true })
+}
+
 export async function DELETE(req: NextRequest) {
   const denied = verifyAdmin(req)
   if (denied) return denied

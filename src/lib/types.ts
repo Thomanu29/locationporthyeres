@@ -112,6 +112,7 @@ export interface Photo {
   url: string
   alt: string | null
   sort_order: number
+  is_featured: boolean
 }
 
 export interface BookingDocument {

@@ -36,6 +36,7 @@ interface HomeContentProps {
     url: string
     alt: string | null
     category: string
+    is_featured: boolean
   }>
   heroPhoto: { url: string } | null | undefined
   avgRating: string
@@ -257,7 +258,7 @@ function GallerySection({
             {GALLERY_CATEGORIES.map((cat) => {
               const photos = grouped[cat.value]
               if (!photos || photos.length === 0) return null
-              const cover = photos[0]
+              const cover = photos.find((p) => p.is_featured) || photos[0]
               return (
                 <div
                   key={cat.value}

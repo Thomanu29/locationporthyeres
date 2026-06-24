@@ -729,6 +729,15 @@ function PhotosTab({ token }: { token: string }) {
     refresh()
   }
 
+  const toggleFeatured = async (id: string) => {
+    await fetch('/api/admin/photos', {
+      method: 'PATCH',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id }),
+    })
+    refresh()
+  }
+
   const groupedPhotos: Record<string, Photo[]> = {}
   for (const photo of Array.isArray(photos) ? photos : []) {
     if (!groupedPhotos[photo.category]) groupedPhotos[photo.category] = []
@@ -786,8 +795,18 @@ function PhotosTab({ token }: { token: string }) {
                     <img
                       src={photo.url}
                       alt={photo.alt || photo.category}
-                      className="w-full aspect-[4/3] object-cover rounded-lg"
+                      className={`w-full aspect-[4/3] object-cover rounded-lg ${photo.is_featured ? 'ring-2 ring-amber-400' : ''}`}
                     />
+                    {photo.is_featured && (
+                      <span className="absolute top-2 left-2 bg-amber-400 text-amber-900 text-xs font-semibold px-2 py-0.5 rounded">Couverture</span>
+                    )}
+                    <button
+                      onClick={() => toggleFeatured(photo.id)}
+                      className={`absolute bottom-2 left-2 p-1.5 rounded-lg transition ${photo.is_featured ? 'bg-amber-400 text-amber-900' : 'bg-black/50 text-white opacity-0 group-hover:opacity-100'}`}
+                      title="Définir comme photo de couverture"
+                    >
+                      <Star className={`w-3 h-3 ${photo.is_featured ? 'fill-amber-900' : ''}`} />
+                    </button>
                     <button
                       onClick={() => deletePhoto(photo.id)}
                       className="absolute top-2 right-2 bg-red-500 text-white p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition"
