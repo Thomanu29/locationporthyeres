@@ -36,7 +36,7 @@ interface HomeContentProps {
     url: string
     alt: string | null
     category: string
-    is_featured: boolean
+    is_featured?: boolean
   }>
   heroPhoto: { url: string } | null | undefined
   avgRating: string
