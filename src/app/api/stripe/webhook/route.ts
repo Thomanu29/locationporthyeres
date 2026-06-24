@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'No booking_id in metadata' }, { status: 400 })
     }
 
-    const rcDeadline = format(addDays(new Date(), 7), 'yyyy-MM-dd')
+    const rcDeadline = format(addDays(new Date(), 15), 'yyyy-MM-dd')
     const rcUploadToken = randomUUID()
 
     await supabaseAdmin

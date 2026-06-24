@@ -337,8 +337,8 @@ export default function ReservationPage() {
                   />
                   <span className="text-sm text-foreground">
                     {locale === 'en'
-                      ? 'I agree to provide a valid civil liability insurance certificate within 7 days of my booking. Without this document, my booking will be cancelled and 20% of the total amount will be retained as management fees.'
-                      : "Je m'engage à fournir une attestation d'assurance responsabilité civile valide dans les 7 jours suivant ma réservation. Sans ce document, ma réservation sera annulée et 20% du montant total sera retenu au titre des frais de gestion."}
+                      ? 'I agree to provide a valid civil liability insurance certificate within 15 days of my booking. Without this document, my booking will be cancelled and 20% of the total amount will be retained as management fees.'
+                      : "Je m'engage à fournir une attestation d'assurance responsabilité civile valide dans les 15 jours suivant ma réservation. Sans ce document, ma réservation sera annulée et 20% du montant total sera retenu au titre des frais de gestion."}
                   </span>
                 </label>
 

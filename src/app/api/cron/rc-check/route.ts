@@ -18,17 +18,17 @@ export async function GET(req: NextRequest) {
   const results = { reminders: 0, cancelled: 0, ownerAlerts: 0 }
 
   try {
-    // Action 1: Send reminders at J+5 (2 days before deadline)
-    const reminderDate = format(addDays(new Date(), 2), 'yyyy-MM-dd')
-    const { data: reminders } = await supabaseAdmin
+    // Action 1a: First reminder at J+7 (8 days before deadline)
+    const firstReminderDate = format(addDays(new Date(), 8), 'yyyy-MM-dd')
+    const { data: firstReminders } = await supabaseAdmin
       .from('bookings')
       .select('*')
       .eq('rc_status', 'pending')
       .eq('rc_reminder_sent', false)
-      .eq('rc_deadline', reminderDate)
+      .eq('rc_deadline', firstReminderDate)
       .eq('payment_status', 'paid')
 
-    for (const booking of reminders ?? []) {
+    for (const booking of firstReminders ?? []) {
       try {
         await sendRcReminderEmail(booking.guest_name, booking.guest_email, booking.rc_deadline, booking.rc_upload_token)
         await supabaseAdmin
@@ -37,7 +37,25 @@ export async function GET(req: NextRequest) {
           .eq('id', booking.id)
         results.reminders++
       } catch (err) {
-        console.error(`RC reminder failed for ${booking.guest_email}:`, err)
+        console.error(`RC first reminder failed for ${booking.guest_email}:`, err)
+      }
+    }
+
+    // Action 1b: Final reminder at J+13 (2 days before deadline)
+    const finalReminderDate = format(addDays(new Date(), 2), 'yyyy-MM-dd')
+    const { data: finalReminders } = await supabaseAdmin
+      .from('bookings')
+      .select('*')
+      .eq('rc_status', 'pending')
+      .eq('rc_deadline', finalReminderDate)
+      .eq('payment_status', 'paid')
+
+    for (const booking of finalReminders ?? []) {
+      try {
+        await sendRcReminderEmail(booking.guest_name, booking.guest_email, booking.rc_deadline, booking.rc_upload_token)
+        results.reminders++
+      } catch (err) {
+        console.error(`RC final reminder failed for ${booking.guest_email}:`, err)
       }
     }
 
@@ -75,8 +93,8 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    // Action 3: Notify owner of pending RCs at J+3 (4 days before deadline)
-    const alertDate = format(addDays(new Date(), 4), 'yyyy-MM-dd')
+    // Action 3: Notify owner of pending RCs at J+10 (5 days before deadline)
+    const alertDate = format(addDays(new Date(), 5), 'yyyy-MM-dd')
     const { data: pendingAlerts } = await supabaseAdmin
       .from('bookings')
       .select('guest_name, guest_email, check_in, rc_deadline')
