@@ -1,9 +1,15 @@
 import icalGenerator from 'ical-generator'
 import { supabaseAdmin } from './supabase'
-import type { Booking } from './types'
+import type { Booking, BlockedDate } from './types'
 import { formatLocalDate } from './date-utils'
 
-export function generateIcalFeed(bookings: Booking[]): string {
+function addDaysToDate(dateStr: string, days: number): Date {
+  const d = new Date(dateStr + 'T00:00:00')
+  d.setDate(d.getDate() + days)
+  return d
+}
+
+export function generateIcalFeed(bookings: Booking[], blockedDates: BlockedDate[]): string {
   const calendar = icalGenerator({
     name: 'Appartement du Port - Hyères',
     prodId: { company: 'locationporthyeres.fr', product: 'booking-calendar' },
@@ -11,12 +17,28 @@ export function generateIcalFeed(bookings: Booking[]): string {
 
   for (const booking of bookings) {
     const event = calendar.createEvent({
-      start: new Date(booking.check_in),
-      end: new Date(booking.check_out),
-      summary: 'BLOCKED',
-      description: `Réservation ${booking.source} - ${booking.guest_name}`,
+      start: new Date(booking.check_in + 'T00:00:00'),
+      end: new Date(booking.check_out + 'T00:00:00'),
+      summary: 'Réservé',
+      description: `Réservation ${booking.source || 'directe'} - ${booking.guest_name}`,
     })
     event.uid(booking.id)
+  }
+
+  const bookedRanges = bookings.map((b) => `${b.check_in}_${b.check_out}`)
+
+  for (const block of blockedDates) {
+    const rangeKey = `${block.date_start}_${block.date_end}`
+    if (bookedRanges.includes(rangeKey)) continue
+
+    const dtEnd = addDaysToDate(block.date_end, 1)
+
+    const event = calendar.createEvent({
+      start: new Date(block.date_start + 'T00:00:00'),
+      end: dtEnd,
+      summary: block.reason || 'Indisponible',
+    })
+    event.uid(`blocked-${block.id}`)
   }
 
   return calendar.toString()
