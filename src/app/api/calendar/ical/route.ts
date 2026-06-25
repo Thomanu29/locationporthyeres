@@ -1,11 +1,11 @@
 import { NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { generateIcalFeed } from '@/lib/ical'
-import type { Booking, BlockedDate } from '@/lib/types'
+import type { Booking, BlockedDate, ImportedEvent } from '@/lib/types'
 
 export async function GET() {
   try {
-    const [bookingsRes, blockedRes] = await Promise.all([
+    const [bookingsRes, blockedRes, importedRes] = await Promise.all([
       supabaseAdmin
         .from('bookings')
         .select('*')
@@ -14,14 +14,19 @@ export async function GET() {
       supabaseAdmin
         .from('blocked_dates')
         .select('*'),
+      supabaseAdmin
+        .from('imported_events')
+        .select('*'),
     ])
 
     if (bookingsRes.error) throw bookingsRes.error
     if (blockedRes.error) throw blockedRes.error
+    if (importedRes.error) throw importedRes.error
 
     const icalContent = generateIcalFeed(
       (bookingsRes.data ?? []) as Booking[],
       (blockedRes.data ?? []) as BlockedDate[],
+      (importedRes.data ?? []) as ImportedEvent[],
     )
 
     return new NextResponse(icalContent, {

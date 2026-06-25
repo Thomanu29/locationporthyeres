@@ -543,6 +543,47 @@ export async function sendRcOwnerAlert(bookings: Array<{ guest_name: string; gue
   })
 }
 
+export async function sendIcalConflictAlert(
+  sourceName: string,
+  conflicts: Array<{ importStart: string; importEnd: string; bookingStart: string; bookingEnd: string }>,
+) {
+  const rows = conflicts.map((c) => `
+    <tr>
+      <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${formatDate(c.importStart)} → ${formatDate(c.importEnd)}</td>
+      <td style="padding: 8px; border-bottom: 1px solid #e5e7eb;">${formatDate(c.bookingStart)} → ${formatDate(c.bookingEnd)}</td>
+    </tr>
+  `).join('')
+
+  const html = `
+    <div style="font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto;">
+      <div style="background: #dc2626; padding: 24px; text-align: center; border-radius: 8px 8px 0 0;">
+        <h1 style="color: white; margin: 0; font-size: 22px;">⚠️ Conflit de calendrier détecté</h1>
+      </div>
+      <div style="padding: 24px; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px;">
+        <p>La synchronisation <strong>${escapeHtml(sourceName)}</strong> a détecté <strong>${conflicts.length} conflit(s)</strong> avec vos réservations directes :</p>
+        <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
+          <thead>
+            <tr style="background: #fef2f2;">
+              <th style="padding: 8px; text-align: left; color: #991b1b;">Import (${escapeHtml(sourceName)})</th>
+              <th style="padding: 8px; text-align: left; color: #991b1b;">Réservation directe</th>
+            </tr>
+          </thead>
+          <tbody>${rows}</tbody>
+        </table>
+        <p style="color: #991b1b;"><strong>Les dates importées ont été bloquées par sécurité.</strong> Vérifiez manuellement et résolvez le conflit.</p>
+        <p><a href="https://locationporthyeres.fr/admin" style="color: #2563eb;">Gérer dans l'admin →</a></p>
+      </div>
+    </div>
+  `
+
+  await resend.emails.send({
+    from: 'Appartement du Port <noreply@locationporthyeres.fr>',
+    to: process.env.NOTIFICATION_EMAIL ?? 'locationporthyeres@gmail.com',
+    subject: `⚠️ Conflit calendrier ${sourceName} — ${conflicts.length} chevauchement(s)`,
+    html,
+  })
+}
+
 function formatDate(dateStr: string): string {
   const date = new Date(dateStr)
   return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })

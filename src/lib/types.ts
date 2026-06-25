@@ -85,10 +85,24 @@ export interface BlockedDate {
 
 export interface IcalSource {
   id: string
-  platform: 'airbnb' | 'booking' | 'abritel'
+  name: string | null
+  platform: 'airbnb' | 'booking' | 'abritel' | 'leboncoin' | 'other'
   ical_url: string
   last_sync: string | null
   is_active: boolean
+  sync_status: 'pending' | 'ok' | 'error'
+  sync_error: string | null
+}
+
+// Convention: date_end is EXCLUSIVE (first free day), matching iCal DTEND
+export interface ImportedEvent {
+  id: string
+  source_id: string
+  uid: string
+  date_start: string
+  date_end: string
+  summary: string | null
+  created_at: string
 }
 
 export interface PriceCalculation {

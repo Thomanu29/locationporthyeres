@@ -25,10 +25,11 @@ import {
   CalendarPlus,
   Loader2,
 } from 'lucide-react'
-import type { Booking, PricingRule, BlockedDate, Review, Guest, Photo, BookingDocument } from '@/lib/types'
+import type { Booking, PricingRule, BlockedDate, Review, Guest, Photo, BookingDocument, IcalSource } from '@/lib/types'
 import MessagesTab from '@/components/admin/MessagesTab'
+import { RefreshCw } from 'lucide-react'
 
-type Tab = 'dashboard' | 'bookings' | 'guests' | 'pricing' | 'blocked' | 'reviews' | 'photos' | 'messages' | 'rc'
+type Tab = 'dashboard' | 'bookings' | 'guests' | 'pricing' | 'blocked' | 'reviews' | 'photos' | 'messages' | 'rc' | 'sync'
 
 export default function AdminPage() {
   const [authenticated, setAuthenticated] = useState(false)
@@ -83,6 +84,7 @@ export default function AdminPage() {
     { key: 'photos', label: 'Photos', icon: ImageIcon },
     { key: 'messages', label: 'Messages', icon: MessageSquare },
     { key: 'rc', label: 'RC Assurances', icon: Shield },
+    { key: 'sync', label: 'Sync iCal', icon: RefreshCw },
   ]
 
   return (
@@ -127,6 +129,7 @@ export default function AdminPage() {
         {activeTab === 'photos' && <PhotosTab token={token} />}
         {activeTab === 'messages' && <MessagesTab token={token} />}
         {activeTab === 'rc' && <RcTab token={token} />}
+        {activeTab === 'sync' && <SyncTab token={token} />}
       </div>
     </div>
   )
@@ -1100,6 +1103,194 @@ function RcTab({ token }: { token: string }) {
               </button>
             </div>
           </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+const PLATFORMS = [
+  { value: 'airbnb', label: 'Airbnb' },
+  { value: 'booking', label: 'Booking.com' },
+  { value: 'abritel', label: 'Abritel' },
+  { value: 'leboncoin', label: 'Leboncoin' },
+  { value: 'other', label: 'Autre' },
+]
+
+function SyncTab({ token }: { token: string }) {
+  const { data: sources, loading, refresh } = useFetch<IcalSource[]>('/api/admin/ical-sources', token)
+  const [form, setForm] = useState({ name: '', platform: 'airbnb', ical_url: '' })
+  const [adding, setAdding] = useState(false)
+  const [syncing, setSyncing] = useState<string | null>(null)
+
+  const addSource = async () => {
+    if (!form.ical_url || !form.platform) return
+    setAdding(true)
+    await fetch('/api/admin/ical-sources', {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify(form),
+    })
+    setForm({ name: '', platform: 'airbnb', ical_url: '' })
+    setAdding(false)
+    refresh()
+  }
+
+  const deleteSource = async (id: string) => {
+    await fetch(`/api/admin/ical-sources?id=${id}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    refresh()
+  }
+
+  const syncSource = async (id: string) => {
+    setSyncing(id)
+    await fetch('/api/admin/ical-sources', {
+      method: 'PATCH',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, action: 'sync' }),
+    })
+    setSyncing(null)
+    refresh()
+  }
+
+  const toggleSource = async (id: string) => {
+    await fetch('/api/admin/ical-sources', {
+      method: 'PATCH',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, action: 'toggle' }),
+    })
+    refresh()
+  }
+
+  const icalUrl = typeof window !== 'undefined'
+    ? `${window.location.origin}/api/calendar/ical`
+    : '/api/calendar/ical'
+
+  return (
+    <div className="space-y-6">
+      {/* Export URL */}
+      <div className="bg-white rounded-xl p-6 border border-border">
+        <h3 className="font-semibold mb-2">📤 URL d&apos;export (à coller dans Airbnb/Booking)</h3>
+        <code className="block bg-surface p-3 rounded-lg text-sm break-all">{icalUrl}</code>
+      </div>
+
+      {/* Add source */}
+      <div className="bg-white rounded-xl p-6 border border-border">
+        <h3 className="font-semibold mb-4 flex items-center gap-2">
+          <Plus className="w-4 h-4" /> Ajouter un calendrier externe
+        </h3>
+        <div className="flex flex-wrap items-end gap-3">
+          <div>
+            <label className="block text-sm font-medium mb-1">Nom</label>
+            <input
+              type="text"
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              placeholder="Ex: Mon Airbnb"
+              className="border border-border rounded-lg px-3 py-2 text-sm w-40"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Plateforme</label>
+            <select
+              value={form.platform}
+              onChange={(e) => setForm({ ...form, platform: e.target.value })}
+              className="border border-border rounded-lg px-3 py-2 text-sm"
+            >
+              {PLATFORMS.map((p) => (
+                <option key={p.value} value={p.value}>{p.label}</option>
+              ))}
+            </select>
+          </div>
+          <div className="flex-1 min-w-[250px]">
+            <label className="block text-sm font-medium mb-1">URL iCal</label>
+            <input
+              type="url"
+              value={form.ical_url}
+              onChange={(e) => setForm({ ...form, ical_url: e.target.value })}
+              placeholder="https://..."
+              className="border border-border rounded-lg px-3 py-2 text-sm w-full"
+            />
+          </div>
+          <button
+            onClick={addSource}
+            disabled={adding || !form.ical_url}
+            className="bg-primary text-white px-4 py-2 rounded-lg text-sm hover:bg-primary-dark disabled:opacity-50"
+          >
+            {adding ? 'Ajout...' : 'Ajouter'}
+          </button>
+        </div>
+      </div>
+
+      {/* Sources list */}
+      {loading ? (
+        <p className="text-center text-muted">Chargement...</p>
+      ) : !sources || sources.length === 0 ? (
+        <p className="text-center text-muted">Aucun calendrier externe configuré</p>
+      ) : (
+        <div className="bg-white rounded-xl border border-border overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="bg-surface border-b border-border">
+                <th className="p-3 text-left">Source</th>
+                <th className="p-3 text-left">Plateforme</th>
+                <th className="p-3 text-left">Statut</th>
+                <th className="p-3 text-left">Dernière synchro</th>
+                <th className="p-3 text-left">Actif</th>
+                <th className="p-3 text-left">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {sources.map((s) => (
+                <tr key={s.id} className="border-b border-border">
+                  <td className="p-3 font-medium">{s.name || '—'}</td>
+                  <td className="p-3 capitalize">{s.platform}</td>
+                  <td className="p-3">
+                    {s.sync_status === 'ok' && <span className="text-green-600 flex items-center gap-1"><CheckCircle className="w-4 h-4" /> OK</span>}
+                    {s.sync_status === 'error' && (
+                      <span className="text-red-600 flex items-center gap-1" title={s.sync_error || ''}>
+                        <XCircle className="w-4 h-4" /> Erreur
+                      </span>
+                    )}
+                    {s.sync_status === 'pending' && <span className="text-muted flex items-center gap-1"><Clock className="w-4 h-4" /> En attente</span>}
+                  </td>
+                  <td className="p-3 text-muted">
+                    {s.last_sync
+                      ? new Date(s.last_sync).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' })
+                      : 'Jamais'}
+                  </td>
+                  <td className="p-3">
+                    <button
+                      onClick={() => toggleSource(s.id)}
+                      className={`text-xs px-2 py-1 rounded ${s.is_active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}
+                    >
+                      {s.is_active ? 'Actif' : 'Inactif'}
+                    </button>
+                  </td>
+                  <td className="p-3">
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => syncSource(s.id)}
+                        disabled={syncing === s.id}
+                        className="bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg text-xs hover:bg-blue-100 disabled:opacity-50 flex items-center gap-1"
+                      >
+                        {syncing === s.id ? <Loader2 className="w-3 h-3 animate-spin" /> : <RefreshCw className="w-3 h-3" />}
+                        Sync
+                      </button>
+                      <button
+                        onClick={() => deleteSource(s.id)}
+                        className="bg-red-50 text-red-600 p-1.5 rounded-lg hover:bg-red-100"
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
     </div>

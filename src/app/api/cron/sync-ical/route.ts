@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { syncIcalSource } from '@/lib/ical'
+import { sendIcalConflictAlert } from '@/lib/emails'
+import type { IcalSource } from '@/lib/types'
 
 export async function GET(req: NextRequest) {
   const auth = req.headers.get('authorization')
@@ -20,27 +22,32 @@ export async function GET(req: NextRequest) {
 
     const results = []
 
-    for (const source of sources) {
+    for (const source of sources as IcalSource[]) {
       try {
-        const blockedDates = await syncIcalSource(source.ical_url)
+        const result = await syncIcalSource(source)
 
-        for (const dateStr of blockedDates) {
-          await supabaseAdmin
-            .from('blocked_dates')
-            .upsert(
-              { date_start: dateStr, date_end: dateStr, reason: `Sync ${source.platform}` },
-              { onConflict: 'date_start,date_end' }
-            )
+        if (result.conflicts.length > 0) {
+          try {
+            await sendIcalConflictAlert(source.name || source.platform, result.conflicts)
+          } catch (emailErr) {
+            console.error(`Conflict alert email failed for ${source.platform}:`, emailErr)
+          }
         }
 
+        results.push({
+          platform: source.platform,
+          name: source.name,
+          upserted: result.upserted,
+          removed: result.removed,
+          conflicts: result.conflicts.length,
+        })
+      } catch (err) {
         await supabaseAdmin
           .from('ical_sources')
-          .update({ last_sync: new Date().toISOString() })
+          .update({ sync_status: 'error', sync_error: String(err).slice(0, 500) })
           .eq('id', source.id)
 
-        results.push({ platform: source.platform, dates: blockedDates.length })
-      } catch (err) {
-        results.push({ platform: source.platform, error: String(err) })
+        results.push({ platform: source.platform, name: source.name, error: String(err) })
       }
     }
 
