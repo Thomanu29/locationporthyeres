@@ -15,7 +15,25 @@
       "Bash(vercel logs *)",
       "Bash(vercel env *)",
       "Bash(xxd -l 200 -s 3300 \"C:\\\\Users\\\\tmanuguerra\\\\site-code2\\\\src\\\\components\\\\FaqAccordion.tsx\")",
-      "Bash(vercel --prod --yes)"
+      "Bash(vercel --prod --yes)",
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\tmanuguerra\\\\Downloads\\\\marble_sensors_hmi_final\" -Recurse -Depth 3 -Name)",
+      "PowerShell(New-Item -ItemType Directory -Path \"C:\\\\Users\\\\tmanuguerra\\\\Downloads\\\\marble_sensors_hmi_final\\\\marble_sensors_hmi\\\\marble_sensors_hmi\\\\drivers\\\\oculus\" -Force)",
+      "Bash(npx tsc *)",
+      "Bash(ls \"C:\\\\Users\\\\tmanuguerra\\\\Downloads\\\\\" | findstr -i marble)",
+      "PowerShell(gh auth status 2>&1)",
+      "PowerShell(\\(Get-Item \"C:\\\\Users\\\\tmanuguerra\\\\Downloads\\\\marble_sensors_hmi_oculus.zip\"\\).Length / 1KB)",
+      "Bash(npm run *)",
+      "Bash(curl -s https://locationporthyeres.fr/api/calendar)",
+      "Bash(curl -s https://locationporthyeres.fr/api/calendar/ical)",
+      "PowerShell(Get-NetIPAddress -InterfaceAlias \"Ethernet 3\" | Where-Object {$_.AddressFamily -eq 'IPv4'} | Select-Object IPAddress, PrefixLength)",
+      "Bash(python -u test_oculus_passive.py)",
+      "Bash(python -u test_oculus_live.py)",
+      "Bash(python test_oculus_struct.py)",
+      "Bash(python test_oculus_live.py)",
+      "Bash(timeout 8)",
+      "Bash(python test_oculus_discovery.py)",
+      "Bash(python hmi\\\\test_oculus_struct2.py)",
+      "Bash(python \"hmi/test_oculus_struct2.py\")"
     ]
   }
 }
