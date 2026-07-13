@@ -40,10 +40,11 @@ interface HomeContentProps {
   }>
   heroPhoto: { url: string } | null | undefined
   avgRating: string
+  reviewCount: number
   minPrice: number
 }
 
-export default function HomeContent({ reviews, galleryPhotos, heroPhoto, avgRating, minPrice }: HomeContentProps) {
+export default function HomeContent({ reviews, galleryPhotos, heroPhoto, avgRating, reviewCount, minPrice }: HomeContentProps) {
   const { t, tArray } = useTranslation()
 
   const equipements = [
@@ -89,9 +90,19 @@ export default function HomeContent({ reviews, galleryPhotos, heroPhoto, avgRati
         <div className="relative z-20 text-center text-white px-4 max-w-3xl">
           <div className="flex items-center justify-center gap-1 mb-4">
             {[1, 2, 3, 4, 5].map((i) => (
-              <Star key={i} className="w-5 h-5 fill-amber-400 text-amber-400" />
+              <Star
+                key={i}
+                className={`w-5 h-5 ${i <= Math.round(parseFloat(avgRating)) ? 'fill-amber-400 text-amber-400' : 'text-white/40'}`}
+              />
             ))}
-            <span className="ml-2 text-lg">{avgRating}</span>
+            <span className="ml-2 text-lg">
+              {avgRating}
+              {reviewCount > 0 && (
+                <span className="text-white/70 text-base ml-1">
+                  ({reviewCount === 1 ? t('home.reviews.countOne', { count: reviewCount }) : t('home.reviews.count', { count: reviewCount })})
+                </span>
+              )}
+            </span>
           </div>
           <h1 className="text-4xl md:text-6xl font-bold mb-4 leading-tight">
             {t('home.hero.title')}
@@ -177,25 +188,35 @@ export default function HomeContent({ reviews, galleryPhotos, heroPhoto, avgRati
       <section id="avis" className="py-20">
         <div className="max-w-6xl mx-auto px-4">
           <h2 className="text-3xl font-bold text-center mb-12">{t('home.reviews.title')}</h2>
-          {reviews && reviews.length > 0 ? (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {reviews.map((review) => (
-                <div key={review.id} className="bg-white border border-border rounded-xl p-6">
-                  <div className="flex items-center gap-1 mb-3">
-                    {Array.from({ length: review.rating }).map((_, i) => (
-                      <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
-                    ))}
-                  </div>
-                  <p className="text-foreground mb-4 leading-relaxed">{review.comment}</p>
-                  <div className="flex items-center justify-between text-sm text-muted">
-                    <span className="font-medium">{review.reviewer_name}</span>
-                    {review.reviewer_location && <span>{review.reviewer_location}</span>}
-                  </div>
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {reviews?.map((review) => (
+              <div key={review.id} className="bg-white border border-border rounded-xl p-6">
+                <div className="flex items-center gap-1 mb-3">
+                  {Array.from({ length: review.rating }).map((_, i) => (
+                    <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
+                  ))}
                 </div>
-              ))}
-            </div>
-          ) : (
-            <p className="text-center text-muted">{t('home.reviews.empty')}</p>
+                <p className="text-foreground mb-4 leading-relaxed">{review.comment}</p>
+                <div className="flex items-center justify-between text-sm text-muted">
+                  <span className="font-medium">{review.reviewer_name}</span>
+                  {review.reviewer_location && <span>{review.reviewer_location}</span>}
+                </div>
+              </div>
+            ))}
+            <Link
+              href="/avis"
+              className="flex flex-col items-center justify-center text-center border-2 border-dashed border-border rounded-xl p-6 hover:border-primary hover:bg-surface transition"
+            >
+              <Star className="w-6 h-6 text-primary mb-3" />
+              <span className="font-semibold mb-1">{t('home.reviews.leaveTitle')}</span>
+              <p className="text-sm text-muted mb-4">{t('home.reviews.leaveDesc')}</p>
+              <span className="inline-block bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium">
+                {t('home.reviews.leaveButton')}
+              </span>
+            </Link>
+          </div>
+          {(!reviews || reviews.length === 0) && (
+            <p className="text-center text-muted mt-6">{t('home.reviews.empty')}</p>
           )}
         </div>
       </section>

@@ -78,7 +78,12 @@
     },
     "reviews": {
       "title": "Ce que disent nos voyageurs",
-      "empty": "Les avis de nos voyageurs apparaîtront ici prochainement."
+      "empty": "Les avis de nos voyageurs apparaîtront ici prochainement.",
+      "count": "{count} avis",
+      "countOne": "{count} avis",
+      "leaveTitle": "Partagez votre expérience",
+      "leaveDesc": "Vous avez séjourné chez nous ? Votre avis compte beaucoup pour nous et aide les futurs voyageurs.",
+      "leaveButton": "Laisser un avis"
     },
     "cta": {
       "title": "Réservez en direct · 0% de commission",

@@ -78,7 +78,12 @@
     },
     "reviews": {
       "title": "What our guests say",
-      "empty": "Guest reviews will appear here soon."
+      "empty": "Guest reviews will appear here soon.",
+      "count": "{count} reviews",
+      "countOne": "{count} review",
+      "leaveTitle": "Share your experience",
+      "leaveDesc": "Stayed with us? Your review means a lot to us and helps future travelers.",
+      "leaveButton": "Leave a review"
     },
     "cta": {
       "title": "Book direct · 0% commission",

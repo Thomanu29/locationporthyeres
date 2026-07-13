@@ -30,9 +30,12 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
-    const { token, rating, comment, reviewer_location } = body
+    const { token, rating, comment, reviewer_location, reviewer_name, website } = body
 
-    if (!token) return NextResponse.json({ error: 'Token requis' }, { status: 400 })
+    // Honeypot: real visitors never fill this hidden field.
+    if (typeof website === 'string' && website.trim()) {
+      return NextResponse.json({ ok: true })
+    }
 
     const ratingNum = Number(rating)
     if (!Number.isInteger(ratingNum) || ratingNum < 1 || ratingNum > 5) {
@@ -43,41 +46,66 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Commentaire requis' }, { status: 400 })
     }
 
-    const { data: booking } = await supabaseAdmin
-      .from('bookings')
-      .select('id, guest_name, check_out, review_submitted_at')
-      .eq('review_token', token)
-      .single()
+    const locationValue =
+      reviewer_location && typeof reviewer_location === 'string' ? reviewer_location.trim() || null : null
 
-    if (!booking) {
-      return NextResponse.json({ error: 'Lien invalide ou expiré' }, { status: 404 })
+    if (token) {
+      const { data: booking } = await supabaseAdmin
+        .from('bookings')
+        .select('id, guest_name, check_out, review_submitted_at')
+        .eq('review_token', token)
+        .single()
+
+      if (!booking) {
+        return NextResponse.json({ error: 'Lien invalide ou expiré' }, { status: 404 })
+      }
+
+      if (booking.review_submitted_at) {
+        return NextResponse.json({ error: 'Vous avez déjà laissé un avis pour ce séjour' }, { status: 400 })
+      }
+
+      const { error: insertError } = await supabaseAdmin.from('reviews').insert({
+        reviewer_name: shortName(booking.guest_name),
+        reviewer_location: locationValue,
+        rating: ratingNum,
+        comment: comment.trim(),
+        stay_date: booking.check_out,
+        source: 'direct',
+        is_visible: false,
+      })
+
+      if (insertError) {
+        return NextResponse.json({ error: insertError.message }, { status: 500 })
+      }
+
+      const { error: updateError } = await supabaseAdmin
+        .from('bookings')
+        .update({ review_submitted_at: new Date().toISOString() })
+        .eq('id', booking.id)
+
+      if (updateError) {
+        console.error('booking review_submitted_at update error:', updateError)
+      }
+
+      return NextResponse.json({ ok: true })
     }
 
-    if (booking.review_submitted_at) {
-      return NextResponse.json({ error: 'Vous avez déjà laissé un avis pour ce séjour' }, { status: 400 })
+    // No token: open public submission from the site's "Leave a review" card.
+    if (!reviewer_name || typeof reviewer_name !== 'string' || !reviewer_name.trim()) {
+      return NextResponse.json({ error: 'Nom requis' }, { status: 400 })
     }
 
     const { error: insertError } = await supabaseAdmin.from('reviews').insert({
-      reviewer_name: shortName(booking.guest_name),
-      reviewer_location: reviewer_location && typeof reviewer_location === 'string' ? reviewer_location.trim() || null : null,
+      reviewer_name: reviewer_name.trim(),
+      reviewer_location: locationValue,
       rating: ratingNum,
       comment: comment.trim(),
-      stay_date: booking.check_out,
       source: 'direct',
       is_visible: false,
     })
 
     if (insertError) {
       return NextResponse.json({ error: insertError.message }, { status: 500 })
-    }
-
-    const { error: updateError } = await supabaseAdmin
-      .from('bookings')
-      .update({ review_submitted_at: new Date().toISOString() })
-      .eq('id', booking.id)
-
-    if (updateError) {
-      console.error('booking review_submitted_at update error:', updateError)
     }
 
     return NextResponse.json({ ok: true })

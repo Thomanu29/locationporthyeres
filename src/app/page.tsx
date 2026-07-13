@@ -10,7 +10,6 @@ export default async function HomePage() {
     .select('*')
     .eq('is_visible', true)
     .order('created_at', { ascending: false })
-    .limit(6)
 
   if (reviewsError) console.error('Failed to load reviews:', reviewsError)
 
@@ -23,6 +22,7 @@ export default async function HomePage() {
   const priceValues = Object.values(dailyPrices)
   const minPrice = priceValues.length > 0 ? Math.min(...priceValues) : 75
 
+  const reviewCount = reviews?.length ?? 0
   const avgRating = reviews && reviews.length > 0
     ? (reviews.reduce((sum: number, r: { rating: number }) => sum + r.rating, 0) / reviews.length).toFixed(1)
     : '5.0'
@@ -66,6 +66,13 @@ export default async function HomePage() {
             smokingAllowed: false,
             checkinTime: '15:00',
             checkoutTime: '10:00',
+            ...(reviewCount > 0 && {
+              aggregateRating: {
+                '@type': 'AggregateRating',
+                ratingValue: avgRating,
+                reviewCount,
+              },
+            }),
           }),
         }}
       />
@@ -75,6 +82,7 @@ export default async function HomePage() {
         galleryPhotos={galleryPhotos as HomeContentProps['galleryPhotos']}
         heroPhoto={heroPhoto as HomeContentProps['heroPhoto']}
         avgRating={avgRating}
+        reviewCount={reviewCount}
         minPrice={minPrice}
       />
       <Footer />
@@ -99,5 +107,6 @@ type HomeContentProps = {
   }>
   heroPhoto: { url: string } | null | undefined
   avgRating: string
+  reviewCount: number
   minPrice: number
 }
