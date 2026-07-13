@@ -52,7 +52,7 @@ export default function ReviewPublicSubmitPage() {
             <CheckCircle className="w-8 h-8 text-green-600" />
           </div>
           <h1 className="text-xl font-bold mb-2">Merci pour votre avis !</h1>
-          <p className="text-muted">Votre avis a bien été enregistré et sera publié après vérification.</p>
+          <p className="text-muted">Votre avis a bien été enregistré et est déjà publié sur le site.</p>
         </div>
       </div>
     )

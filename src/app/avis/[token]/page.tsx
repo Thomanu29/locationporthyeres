@@ -95,7 +95,7 @@ export default function ReviewSubmitPage() {
           <h1 className="text-xl font-bold mb-2">Merci pour votre avis !</h1>
           <p className="text-muted">
             {success
-              ? 'Votre avis a bien été enregistré et sera publié après vérification.'
+              ? 'Votre avis a bien été enregistré et est déjà publié sur le site.'
               : 'Vous avez déjà partagé votre avis pour ce séjour. Merci !'}
           </p>
         </div>

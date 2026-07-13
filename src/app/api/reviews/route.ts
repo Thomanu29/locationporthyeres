@@ -71,7 +71,7 @@ export async function POST(req: NextRequest) {
         comment: comment.trim(),
         stay_date: booking.check_out,
         source: 'direct',
-        is_visible: false,
+        is_visible: true,
       })
 
       if (insertError) {
@@ -101,7 +101,7 @@ export async function POST(req: NextRequest) {
       rating: ratingNum,
       comment: comment.trim(),
       source: 'direct',
-      is_visible: false,
+      is_visible: true,
     })
 
     if (insertError) {
