@@ -1,0 +1,21 @@
+name: Sync iCal calendars
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch: {}
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger iCal sync
+        run: |
+          status=$(curl -s -o /tmp/response.txt -w "%{http_code}" \
+            -H "Authorization: Bearer ${{ secrets.CRON_SECRET }}" \
+            https://locationporthyeres.fr/api/cron/sync-ical)
+          cat /tmp/response.txt
+          if [ "$status" -ge 300 ]; then
+            echo "Sync failed with HTTP $status"
+            exit 1
+          fi
