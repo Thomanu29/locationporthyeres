@@ -580,20 +580,31 @@ function ReviewsTab({ token }: { token: string }) {
     reviewer_name: '', reviewer_location: '', rating: '5', comment: '', stay_date: '',
     source: 'direct' as Review['source'],
   })
+  const [formError, setFormError] = useState<string | null>(null)
 
   const addReview = async () => {
-    await fetch('/api/admin/reviews', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({
-        ...form,
-        rating: Number(form.rating),
-        stay_date: form.stay_date || null,
-        reviewer_location: form.reviewer_location || null,
-      }),
-    })
-    setForm({ reviewer_name: '', reviewer_location: '', rating: '5', comment: '', stay_date: '', source: 'direct' })
-    refresh()
+    setFormError(null)
+    try {
+      const res = await fetch('/api/admin/reviews', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({
+          ...form,
+          rating: Number(form.rating),
+          stay_date: form.stay_date || null,
+          reviewer_location: form.reviewer_location || null,
+        }),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => null)
+        setFormError(data?.error || `Échec de l'ajout (${res.status})`)
+        return
+      }
+      setForm({ reviewer_name: '', reviewer_location: '', rating: '5', comment: '', stay_date: '', source: 'direct' })
+      refresh()
+    } catch {
+      setFormError('Erreur de connexion. Veuillez réessayer.')
+    }
   }
 
   const toggleVisibility = async (id: string, currentVisible: boolean) => {
@@ -646,6 +657,11 @@ function ReviewsTab({ token }: { token: string }) {
             <option value="google">Google</option>
           </select>
         </div>
+        {formError && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-red-700 text-sm mb-3">
+            {formError}
+          </div>
+        )}
         <button onClick={addReview} className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-dark transition">
           Ajouter
         </button>

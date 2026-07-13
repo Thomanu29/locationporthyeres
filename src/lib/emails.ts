@@ -178,14 +178,26 @@ export async function sendReminderEmail(guestName: string, guestEmail: string, c
   })
 }
 
-export async function sendReviewRequestEmail(guestName: string, guestEmail: string) {
+export async function sendReviewRequestEmail(guestName: string, guestEmail: string, reviewToken?: string) {
   const safeName = escapeHtml(guestName)
+  const firstName = escapeHtml(guestName.split(' ')[0])
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://locationporthyeres.fr'
+  const reviewLink = reviewToken ? `${siteUrl}/avis/${reviewToken}` : null
+
   const html = `
     <div style="font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto;">
       <div style="padding: 32px;">
-        <p>Bonjour ${safeName},</p>
+        <p>Bonjour ${firstName},</p>
         <p>Nous espérons que votre séjour à l'Appartement du Port de Hyères vous a plu !</p>
         <p>Votre avis compte beaucoup pour nous et aide les futurs voyageurs. Pourriez-vous prendre quelques instants pour partager votre expérience ?</p>
+
+        ${reviewLink ? `
+        <div style="text-align: center; margin: 24px 0;">
+          <a href="${reviewLink}" style="display: inline-block; background: #1e40af; color: white; padding: 14px 32px; border-radius: 8px; text-decoration: none; font-weight: 600; font-size: 16px;">Laisser mon avis</a>
+        </div>
+        <p style="text-align: center; color: #6b7280; font-size: 13px; margin-top: 8px;">Ou copiez ce lien : <a href="${reviewLink}" style="color: #1e40af;">${reviewLink}</a></p>
+        ` : ''}
+
         <p>Merci beaucoup et à bientôt sur le port de Hyères !</p>
         <p>Thomas</p>
       </div>

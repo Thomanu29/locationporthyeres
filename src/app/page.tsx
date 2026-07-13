@@ -5,12 +5,14 @@ import { supabase } from '@/lib/supabase'
 import { getDailyPrices } from '@/lib/pricing'
 
 export default async function HomePage() {
-  const { data: reviews } = await supabase
+  const { data: reviews, error: reviewsError } = await supabase
     .from('reviews')
     .select('*')
     .eq('is_visible', true)
     .order('created_at', { ascending: false })
     .limit(6)
+
+  if (reviewsError) console.error('Failed to load reviews:', reviewsError)
 
   const { data: photos } = await supabase
     .from('photos')

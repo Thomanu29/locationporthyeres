@@ -26,7 +26,7 @@ export async function GET(req: NextRequest) {
     const sent = []
     for (const booking of bookings) {
       try {
-        await sendReviewRequestEmail(booking.guest_name, booking.guest_email)
+        await sendReviewRequestEmail(booking.guest_name, booking.guest_email, booking.review_token)
         sent.push(booking.guest_email)
       } catch (err) {
         console.error(`Failed to send review request to ${booking.guest_email}:`, err)
