@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import {
   BarChart3,
   CalendarDays,
@@ -24,8 +24,10 @@ import {
   XCircle,
   CalendarPlus,
   Loader2,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react'
-import type { Booking, PricingRule, BlockedDate, Review, Guest, Photo, BookingDocument, IcalSource } from '@/lib/types'
+import type { Booking, DailyPrice, PricingSettings, BlockedDate, Review, Guest, Photo, BookingDocument, IcalSource } from '@/lib/types'
 import MessagesTab from '@/components/admin/MessagesTab'
 import { RefreshCw } from 'lucide-react'
 
@@ -410,89 +412,279 @@ function GuestsTab({ token }: { token: string }) {
   )
 }
 
-function PricingTab({ token }: { token: string }) {
-  const { data: rules, loading, refresh } = useFetch<PricingRule[]>('/api/admin/pricing', token)
-  const [form, setForm] = useState({ label: '', date_from: '', date_to: '', price_per_night: '', min_nights: '2' })
+const MONTH_LABELS = [
+  'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin',
+  'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre',
+]
+const WEEKDAY_LABELS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim']
 
-  const addRule = async () => {
-    await fetch('/api/admin/pricing', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-      body: JSON.stringify({
-        ...form,
-        price_per_night: Number(form.price_per_night),
-        min_nights: Number(form.min_nights),
-      }),
-    })
-    setForm({ label: '', date_from: '', date_to: '', price_per_night: '', min_nights: '2' })
-    refresh()
+function toDateStr(year: number, month: number, day: number): string {
+  return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+}
+
+function PricingSettingsPanel({ token, settings }: { token: string; settings: PricingSettings | null }) {
+  const defaultPriceRef = useRef<HTMLInputElement>(null)
+  const minNightsRef = useRef<HTMLInputElement>(null)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [saved, setSaved] = useState(false)
+
+  const save = async () => {
+    setError(null)
+    setSaved(false)
+    const default_price = Number(defaultPriceRef.current?.value)
+    const min_nights = Number(minNightsRef.current?.value)
+    setSaving(true)
+    try {
+      const res = await fetch('/api/admin/pricing-settings', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ default_price, min_nights }),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => null)
+        setError(data?.error || 'Échec de la sauvegarde')
+      } else {
+        setSaved(true)
+        setTimeout(() => setSaved(false), 2000)
+      }
+    } catch {
+      setError('Erreur de connexion')
+    }
+    setSaving(false)
   }
 
-  const deleteRule = async (id: string) => {
-    await fetch(`/api/admin/pricing?id=${id}`, {
+  return (
+    <div className="bg-white rounded-xl p-6 border border-border">
+      <h3 className="font-semibold mb-4">Réglages généraux</h3>
+      <div className="grid grid-cols-2 gap-3 max-w-md">
+        <div>
+          <label className="block text-xs text-muted mb-1">Prix par défaut (€/nuit)</label>
+          <input
+            key={settings ? `dp-${settings.default_price}` : 'dp-loading'}
+            ref={defaultPriceRef}
+            type="number"
+            defaultValue={settings?.default_price ?? ''}
+            className="w-full border border-border rounded-lg px-3 py-2 text-sm"
+          />
+        </div>
+        <div>
+          <label className="block text-xs text-muted mb-1">Nuits minimum</label>
+          <input
+            key={settings ? `mn-${settings.min_nights}` : 'mn-loading'}
+            ref={minNightsRef}
+            type="number"
+            defaultValue={settings?.min_nights ?? ''}
+            className="w-full border border-border rounded-lg px-3 py-2 text-sm"
+          />
+        </div>
+      </div>
+      {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
+      {saved && <p className="text-green-600 text-sm mt-2">Enregistré</p>}
+      <button
+        onClick={save}
+        disabled={saving}
+        className="mt-3 bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-dark transition disabled:opacity-50"
+      >
+        {saving ? 'Enregistrement...' : 'Enregistrer'}
+      </button>
+      <p className="text-xs text-muted mt-2">
+        Prix utilisé pour tout jour sans prix spécifique défini dans le calendrier ci-dessous.
+      </p>
+    </div>
+  )
+}
+
+function PricingRangeFillPanel({ token, onFilled }: { token: string; onFilled: () => void }) {
+  const [form, setForm] = useState({ date_from: '', date_to: '', price: '' })
+  const [error, setError] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
+
+  const fill = async () => {
+    if (!form.date_from || !form.date_to || !form.price) return
+    setError(null)
+    setSaving(true)
+    try {
+      const res = await fetch('/api/admin/daily-prices', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+        body: JSON.stringify({ date_from: form.date_from, date_to: form.date_to, price: Number(form.price) }),
+      })
+      if (!res.ok) {
+        const data = await res.json().catch(() => null)
+        setError(data?.error || "Échec de l'application")
+      } else {
+        setForm({ date_from: '', date_to: '', price: '' })
+        onFilled()
+      }
+    } catch {
+      setError('Erreur de connexion')
+    }
+    setSaving(false)
+  }
+
+  return (
+    <div className="bg-white rounded-xl p-6 border border-border">
+      <h3 className="font-semibold mb-4 flex items-center gap-2">
+        <Plus className="w-4 h-4" /> Appliquer un prix à une période
+      </h3>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <input type="date" value={form.date_from} onChange={(e) => setForm({ ...form, date_from: e.target.value })}
+          className="border border-border rounded-lg px-3 py-2 text-sm" />
+        <input type="date" value={form.date_to} onChange={(e) => setForm({ ...form, date_to: e.target.value })}
+          className="border border-border rounded-lg px-3 py-2 text-sm" />
+        <input type="number" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })}
+          placeholder="€/nuit" className="border border-border rounded-lg px-3 py-2 text-sm" />
+        <button onClick={fill} disabled={saving} className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-dark transition disabled:opacity-50">
+          {saving ? 'Application...' : 'Appliquer'}
+        </button>
+      </div>
+      {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
+    </div>
+  )
+}
+
+function PricingCalendar({ token, dailyPrices, defaultPrice, onChanged }: {
+  token: string
+  dailyPrices: DailyPrice[]
+  defaultPrice: number | undefined
+  onChanged: () => void
+}) {
+  const [viewDate, setViewDate] = useState(() => {
+    const d = new Date()
+    return { year: d.getFullYear(), month: d.getMonth() }
+  })
+  const [editingDate, setEditingDate] = useState<string | null>(null)
+  const [editValue, setEditValue] = useState('')
+
+  const pricesMap: Record<string, number> = {}
+  for (const row of dailyPrices) pricesMap[row.date] = Number(row.price)
+
+  const { year, month } = viewDate
+  const firstOfMonth = new Date(year, month, 1)
+  const startWeekday = (firstOfMonth.getDay() + 6) % 7 // Monday = 0
+  const daysInMonth = new Date(year, month + 1, 0).getDate()
+
+  const cells: Array<{ day: number; dateStr: string } | null> = []
+  for (let i = 0; i < startWeekday; i++) cells.push(null)
+  for (let day = 1; day <= daysInMonth; day++) cells.push({ day, dateStr: toDateStr(year, month, day) })
+
+  const goPrevMonth = () => setViewDate((v) => (v.month === 0 ? { year: v.year - 1, month: 11 } : { year: v.year, month: v.month - 1 }))
+  const goNextMonth = () => setViewDate((v) => (v.month === 11 ? { year: v.year + 1, month: 0 } : { year: v.year, month: v.month + 1 }))
+
+  const startEdit = (dateStr: string) => {
+    setEditingDate(dateStr)
+    setEditValue(String(pricesMap[dateStr] ?? defaultPrice ?? ''))
+  }
+
+  const saveEdit = async () => {
+    if (!editingDate) return
+    const price = Number(editValue)
+    if (!Number.isFinite(price) || price <= 0) {
+      setEditingDate(null)
+      return
+    }
+    await fetch('/api/admin/daily-prices', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
+      body: JSON.stringify({ date: editingDate, price }),
+    })
+    setEditingDate(null)
+    onChanged()
+  }
+
+  const resetDay = async (dateStr: string) => {
+    await fetch(`/api/admin/daily-prices?date=${dateStr}`, {
       method: 'DELETE',
       headers: { Authorization: `Bearer ${token}` },
     })
-    refresh()
+    onChanged()
+  }
+
+  return (
+    <div className="bg-white rounded-xl border border-border p-6">
+      <div className="flex items-center justify-between mb-4">
+        <button onClick={goPrevMonth} className="p-2 hover:bg-surface rounded-lg">
+          <ChevronLeft className="w-4 h-4" />
+        </button>
+        <h3 className="font-semibold">{MONTH_LABELS[month]} {year}</h3>
+        <button onClick={goNextMonth} className="p-2 hover:bg-surface rounded-lg">
+          <ChevronRight className="w-4 h-4" />
+        </button>
+      </div>
+
+      <div className="grid grid-cols-7 gap-1 mb-1">
+        {WEEKDAY_LABELS.map((w) => (
+          <div key={w} className="text-xs text-muted text-center py-1">{w}</div>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-7 gap-1">
+        {cells.map((cell, i) => {
+          if (!cell) return <div key={`blank-${i}`} />
+
+          const isOverride = cell.dateStr in pricesMap
+          const price = pricesMap[cell.dateStr] ?? defaultPrice
+          const isEditing = editingDate === cell.dateStr
+
+          return (
+            <div
+              key={cell.dateStr}
+              className={`aspect-square border rounded-lg flex flex-col items-center justify-center text-xs cursor-pointer transition ${
+                isOverride ? 'border-primary bg-primary/5' : 'border-border hover:bg-surface'
+              }`}
+              onClick={() => !isEditing && startEdit(cell.dateStr)}
+            >
+              <span className="text-muted">{cell.day}</span>
+              {isEditing ? (
+                <input
+                  autoFocus
+                  type="number"
+                  value={editValue}
+                  onChange={(e) => setEditValue(e.target.value)}
+                  onBlur={saveEdit}
+                  onKeyDown={(e) => { if (e.key === 'Enter') saveEdit(); if (e.key === 'Escape') setEditingDate(null) }}
+                  onClick={(e) => e.stopPropagation()}
+                  className="w-12 text-center border border-primary rounded text-xs"
+                />
+              ) : (
+                <span className={`font-medium ${isOverride ? 'text-primary' : 'text-muted'}`}>{price ?? '-'}€</span>
+              )}
+              {isOverride && !isEditing && (
+                <button
+                  onClick={(e) => { e.stopPropagation(); resetDay(cell.dateStr) }}
+                  className="text-[10px] text-muted hover:text-red-600"
+                >
+                  réinitialiser
+                </button>
+              )}
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+function PricingTab({ token }: { token: string }) {
+  const { data: dailyPrices, refresh: refreshPrices } = useFetch<DailyPrice[]>('/api/admin/daily-prices', token)
+  const { data: settings, refresh: refreshSettings } = useFetch<PricingSettings>('/api/admin/pricing-settings', token)
+
+  const refreshAll = () => {
+    refreshPrices()
+    refreshSettings()
   }
 
   return (
     <div className="space-y-6">
-      <div className="bg-white rounded-xl p-6 border border-border">
-        <h3 className="font-semibold mb-4 flex items-center gap-2">
-          <Plus className="w-4 h-4" /> Ajouter une période
-        </h3>
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
-          <input value={form.label} onChange={(e) => setForm({ ...form, label: e.target.value })}
-            placeholder="Label" className="border border-border rounded-lg px-3 py-2 text-sm" />
-          <input type="date" value={form.date_from} onChange={(e) => setForm({ ...form, date_from: e.target.value })}
-            className="border border-border rounded-lg px-3 py-2 text-sm" />
-          <input type="date" value={form.date_to} onChange={(e) => setForm({ ...form, date_to: e.target.value })}
-            className="border border-border rounded-lg px-3 py-2 text-sm" />
-          <input type="number" value={form.price_per_night} onChange={(e) => setForm({ ...form, price_per_night: e.target.value })}
-            placeholder="€/nuit" className="border border-border rounded-lg px-3 py-2 text-sm" />
-          <input type="number" value={form.min_nights} onChange={(e) => setForm({ ...form, min_nights: e.target.value })}
-            placeholder="Min nuits" className="border border-border rounded-lg px-3 py-2 text-sm" />
-        </div>
-        <button onClick={addRule} className="mt-3 bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-dark transition">
-          Ajouter
-        </button>
-      </div>
-
-      <div className="bg-white rounded-xl border border-border overflow-x-auto">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-border text-left">
-              <th className="p-3 font-medium">Label</th>
-              <th className="p-3 font-medium">Du</th>
-              <th className="p-3 font-medium">Au</th>
-              <th className="p-3 font-medium">€/nuit</th>
-              <th className="p-3 font-medium">Min nuits</th>
-              <th className="p-3 font-medium"></th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              <tr><td colSpan={6} className="p-4 text-center text-muted">Chargement...</td></tr>
-            ) : (
-              rules?.map((r) => (
-                <tr key={r.id} className="border-b border-border hover:bg-surface">
-                  <td className="p-3">{r.label}</td>
-                  <td className="p-3">{r.date_from}</td>
-                  <td className="p-3">{r.date_to}</td>
-                  <td className="p-3 font-medium">{r.price_per_night}€</td>
-                  <td className="p-3">{r.min_nights}</td>
-                  <td className="p-3">
-                    <button onClick={() => deleteRule(r.id)} className="text-red-500 hover:text-red-700">
-                      <Trash2 className="w-4 h-4" />
-                    </button>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+      <PricingSettingsPanel token={token} settings={settings} />
+      <PricingRangeFillPanel token={token} onFilled={refreshAll} />
+      <PricingCalendar
+        token={token}
+        dailyPrices={dailyPrices ?? []}
+        defaultPrice={settings?.default_price}
+        onChanged={refreshAll}
+      />
     </div>
   )
 }

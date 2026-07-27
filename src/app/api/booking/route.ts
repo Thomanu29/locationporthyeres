@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { supabaseAdmin } from '@/lib/supabase'
 import { stripe } from '@/lib/stripe'
-import { getPricingRules, getDailyPrices, findPricingRule, calculatePrice } from '@/lib/pricing'
+import { getPricingSettings, getDailyPrices, calculatePrice } from '@/lib/pricing'
 import { getUnavailableDates } from '@/lib/ical'
 import { formatLocalDate } from '@/lib/date-utils'
 
@@ -44,24 +44,16 @@ export async function POST(req: NextRequest) {
       current.setDate(current.getDate() + 1)
     }
 
-    const [rules, dailyPrices] = await Promise.all([
-      getPricingRules(),
+    const [settings, dailyPrices] = await Promise.all([
+      getPricingSettings(),
       getDailyPrices(),
     ])
-    const rule = findPricingRule(rules, data.check_in) ?? {
-      id: 'default',
-      label: 'Standard',
-      date_from: '2026-01-01',
-      date_to: '2027-12-31',
-      price_per_night: 100,
-      min_nights: 3,
-    }
 
-    const price = calculatePrice(rule, data.check_in, data.check_out, data.guest_count, dailyPrices)
+    const price = calculatePrice(settings, data.check_in, data.check_out, data.guest_count, dailyPrices)
 
-    if (price.nights < rule.min_nights) {
+    if (price.nights < settings.min_nights) {
       return NextResponse.json({
-        error: `Séjour minimum de ${rule.min_nights} nuits pour cette période`,
+        error: `Séjour minimum de ${settings.min_nights} nuits`,
       }, { status: 400 })
     }
 

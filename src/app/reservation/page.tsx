@@ -24,7 +24,7 @@ import Header from '@/components/Header'
 import Footer from '@/components/Footer'
 import RentalContract from '@/components/RentalContract'
 import { useTranslation } from '@/lib/i18n'
-import type { PricingRule, PriceCalculation } from '@/lib/types'
+import type { PriceCalculation } from '@/lib/types'
 
 export default function ReservationPage() {
   const { t, tArray, locale } = useTranslation()
@@ -40,7 +40,9 @@ export default function ReservationPage() {
   type FormData = z.infer<typeof formSchema>
 
   const [unavailableDates, setUnavailableDates] = useState<Date[]>([])
-  const [pricingRules, setPricingRules] = useState<PricingRule[]>([])
+  const [dailyPricesMap, setDailyPricesMap] = useState<Record<string, number>>({})
+  const [defaultPrice, setDefaultPrice] = useState<number | null>(null)
+  const [minNights, setMinNights] = useState<number | null>(null)
   const [dateRange, setDateRange] = useState<DateRange | undefined>()
   const [guestCount, setGuestCount] = useState(2)
   const [price, setPrice] = useState<PriceCalculation | null>(null)
@@ -68,8 +70,14 @@ export default function ReservationPage() {
             data.unavailable_dates.map((d: string) => new Date(d + 'T00:00:00'))
           )
         }
-        if (data.pricing_rules) {
-          setPricingRules(data.pricing_rules)
+        if (data.daily_prices) {
+          setDailyPricesMap(data.daily_prices)
+        }
+        if (typeof data.default_price === 'number') {
+          setDefaultPrice(data.default_price)
+        }
+        if (typeof data.min_nights === 'number') {
+          setMinNights(data.min_nights)
         }
       })
       .catch(console.error)
@@ -153,18 +161,9 @@ export default function ReservationPage() {
       ? differenceInDays(dateRange.to, dateRange.from)
       : 0
 
-  const currentRule = pricingRules.find((rule) => {
-    if (!dateRange?.from) return false
-    const month = dateRange.from.getMonth() + 1
-    const day = dateRange.from.getDate()
-    const checkMMDD = `${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`
-    const fromMMDD = rule.date_from.slice(5)
-    const toMMDD = rule.date_to.slice(5)
-    if (fromMMDD <= toMMDD) {
-      return checkMMDD >= fromMMDD && checkMMDD <= toMMDD
-    }
-    return checkMMDD >= fromMMDD || checkMMDD <= toMMDD
-  })
+  const currentDayPrice = dateRange?.from
+    ? dailyPricesMap[format(dateRange.from, 'yyyy-MM-dd')] ?? defaultPrice
+    : null
 
   const dateLocale = locale === 'fr' ? frLocale : enLocale
   const rulesItems = tArray('reservation.rules.items')
@@ -211,9 +210,9 @@ export default function ReservationPage() {
                     range_middle: 'rdp-range-middle',
                   }}
                 />
-                {currentRule && (
+                {currentDayPrice !== null && minNights !== null && (
                   <p className="text-sm text-muted mt-2">
-                    {t('reservation.dates.period', { label: currentRule.label, price: currentRule.price_per_night, nights: currentRule.min_nights })}
+                    {t('reservation.dates.period', { price: currentDayPrice, nights: minNights })}
                   </p>
                 )}
               </div>

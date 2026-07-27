@@ -96,7 +96,7 @@
     "subtitle": "Appartement du Port · Hyères · Réservation directe sans frais",
     "dates": {
       "title": "Choisissez vos dates",
-      "period": "Période : {label} · {price}€/nuit · min. {nights} nuits"
+      "period": "{price}€/nuit · min. {nights} nuits"
     },
     "guests": {
       "title": "Nombre de voyageurs"

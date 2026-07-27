@@ -96,7 +96,7 @@
     "subtitle": "Appartement du Port · Hyères · Direct booking, no fees",
     "dates": {
       "title": "Choose your dates",
-      "period": "Season: {label} · {price}€/night · min. {nights} nights"
+      "period": "{price}€/night · min. {nights} nights"
     },
     "guests": {
       "title": "Number of guests"

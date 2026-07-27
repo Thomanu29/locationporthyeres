@@ -57,13 +57,14 @@ export interface Booking {
   review_submitted_at: string | null
 }
 
-export interface PricingRule {
-  id: string
-  label: string
-  date_from: string
-  date_to: string
-  price_per_night: number
+export interface PricingSettings {
+  default_price: number
   min_nights: number
+}
+
+export interface DailyPrice {
+  date: string
+  price: number
 }
 
 export interface Review {
@@ -114,7 +115,6 @@ export interface PriceCalculation {
   tourist_tax: number
   total_amount: number
   min_nights: number
-  rule_label: string
   accommodation_total?: number
   linen_fee?: number
   deposit_amount?: number

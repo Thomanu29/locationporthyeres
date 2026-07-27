@@ -1,5 +1,5 @@
 import { supabaseAdmin } from './supabase'
-import type { PriceCalculation, PricingRule } from './types'
+import type { PriceCalculation, PricingSettings } from './types'
 import { formatLocalDate } from './date-utils'
 
 const CLEANING_FEE = 50
@@ -7,14 +7,15 @@ const TOURIST_TAX_PER_PERSON_PER_NIGHT = 2.5
 const LINEN_FEE_PER_NIGHT = 0
 const DEPOSIT_AMOUNT = 300
 
-export async function getPricingRules(): Promise<PricingRule[]> {
+export async function getPricingSettings(): Promise<PricingSettings> {
   const { data, error } = await supabaseAdmin
-    .from('pricing')
-    .select('*')
-    .order('date_from', { ascending: true })
+    .from('pricing_settings')
+    .select('default_price, min_nights')
+    .eq('id', 1)
+    .single()
 
-  if (error) throw new Error(`Failed to fetch pricing rules: ${error.message}`)
-  return data ?? []
+  if (error) throw new Error(`Failed to fetch pricing settings: ${error.message}`)
+  return data
 }
 
 export async function getDailyPrices(): Promise<Record<string, number>> {
@@ -31,27 +32,8 @@ export async function getDailyPrices(): Promise<Record<string, number>> {
   return priceMap
 }
 
-export function findPricingRule(rules: PricingRule[], checkIn: string): PricingRule | null {
-  const checkInDate = new Date(checkIn)
-  const month = checkInDate.getMonth() + 1
-  const day = checkInDate.getDate()
-  const checkInMMDD = `${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`
-
-  for (const rule of rules) {
-    const fromMMDD = rule.date_from.slice(5)
-    const toMMDD = rule.date_to.slice(5)
-
-    if (fromMMDD <= toMMDD) {
-      if (checkInMMDD >= fromMMDD && checkInMMDD <= toMMDD) return rule
-    } else {
-      if (checkInMMDD >= fromMMDD || checkInMMDD <= toMMDD) return rule
-    }
-  }
-  return rules[0] ?? null
-}
-
 export function calculatePrice(
-  rule: PricingRule,
+  settings: PricingSettings,
   checkIn: string,
   checkOut: string,
   guestCount: number,
@@ -67,7 +49,7 @@ export function calculatePrice(
 
   for (let i = 0; i < nights; i++) {
     const dateStr = formatLocalDate(current)
-    const dayPrice = dailyPrices[dateStr] ?? rule.price_per_night
+    const dayPrice = dailyPrices[dateStr] ?? settings.default_price
     accommodationTotal += dayPrice
     dailyBreakdown.push({ date: dateStr, price: dayPrice })
     current.setDate(current.getDate() + 1)
@@ -85,8 +67,7 @@ export function calculatePrice(
     linen_fee: linenFee,
     tourist_tax: touristTax,
     total_amount: totalAmount,
-    min_nights: rule.min_nights,
-    rule_label: rule.label,
+    min_nights: settings.min_nights,
     accommodation_total: accommodationTotal,
     deposit_amount: DEPOSIT_AMOUNT,
     daily_breakdown: dailyBreakdown,

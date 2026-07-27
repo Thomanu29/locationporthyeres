@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { getUnavailableDates } from '@/lib/ical'
-import { getPricingRules, getDailyPrices, findPricingRule, calculatePrice } from '@/lib/pricing'
+import { getPricingSettings, getDailyPrices, calculatePrice } from '@/lib/pricing'
 import { formatLocalDate } from '@/lib/date-utils'
 
 export async function GET(req: NextRequest) {
@@ -10,9 +10,9 @@ export async function GET(req: NextRequest) {
     const checkOut = searchParams.get('check_out')
     const guests = searchParams.get('guests')
 
-    const [unavailableDates, pricingRules, dailyPrices] = await Promise.all([
+    const [unavailableDates, settings, dailyPrices] = await Promise.all([
       getUnavailableDates(),
-      getPricingRules(),
+      getPricingSettings(),
       getDailyPrices(),
     ])
 
@@ -22,21 +22,12 @@ export async function GET(req: NextRequest) {
         return NextResponse.json({ error: 'Nombre de voyageurs invalide (1-4)' }, { status: 400 })
       }
 
-      const rule = findPricingRule(pricingRules, checkIn) ?? {
-        id: 'default',
-        label: 'Standard',
-        date_from: '2026-01-01',
-        date_to: '2027-12-31',
-        price_per_night: 100,
-        min_nights: 2,
-      }
+      const price = calculatePrice(settings, checkIn, checkOut, guestCount, dailyPrices)
 
-      const price = calculatePrice(rule, checkIn, checkOut, guestCount, dailyPrices)
-
-      if (price.nights < rule.min_nights) {
+      if (price.nights < settings.min_nights) {
         return NextResponse.json({
-          error: `Séjour minimum de ${rule.min_nights} nuits pour cette période (${rule.label})`,
-          min_nights: rule.min_nights,
+          error: `Séjour minimum de ${settings.min_nights} nuits`,
+          min_nights: settings.min_nights,
         }, { status: 400 })
       }
 
@@ -56,7 +47,9 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({
       unavailable_dates: unavailableDates,
-      pricing_rules: pricingRules,
+      daily_prices: dailyPrices,
+      default_price: settings.default_price,
+      min_nights: settings.min_nights,
     })
   } catch (error) {
     console.error('Calendar API error:', error)
