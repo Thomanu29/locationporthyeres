@@ -120,6 +120,7 @@
     },
     "summary": {
       "title": "Récapitulatif",
+      "lastMinute": "-{percent}% dernière minute",
       "accommodation": "Hébergement ({nights} nuits)",
       "avgPerNight": "~{price}€/nuit en moyenne",
       "cleaningFee": "Frais de ménage",

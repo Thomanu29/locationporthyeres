@@ -120,6 +120,7 @@
     },
     "summary": {
       "title": "Summary",
+      "lastMinute": "-{percent}% last-minute deal",
       "accommodation": "Accommodation ({nights} nights)",
       "avgPerNight": "~{price}€/night on average",
       "cleaningFee": "Cleaning fee",

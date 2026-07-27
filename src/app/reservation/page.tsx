@@ -19,6 +19,7 @@ import {
   Loader2,
   Lock,
   ShieldCheck,
+  Tag,
 } from 'lucide-react'
 import Header from '@/components/Header'
 import Footer from '@/components/Footer'
@@ -386,9 +387,22 @@ export default function ReservationPage() {
 
                 {price && !loading && (
                   <div className="space-y-3">
+                    {(price.discount_percent ?? 0) > 0 && (
+                      <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 text-amber-800 rounded-lg px-3 py-2 text-sm font-medium">
+                        <Tag className="w-4 h-4 shrink-0" />
+                        {t('reservation.summary.lastMinute', { percent: price.discount_percent ?? 0 })}
+                      </div>
+                    )}
                     <div className="flex justify-between">
                       <span>{t('reservation.summary.accommodation', { nights: price.nights })}</span>
-                      <span>{(price.accommodation_total ?? price.price_per_night * price.nights).toFixed(2)}€</span>
+                      <span>
+                        {(price.accommodation_total_before_discount ?? 0) > 0 && (
+                          <span className="line-through text-muted mr-2">
+                            {price.accommodation_total_before_discount?.toFixed(2)}€
+                          </span>
+                        )}
+                        {(price.accommodation_total ?? price.price_per_night * price.nights).toFixed(2)}€
+                      </span>
                     </div>
                     <div className="flex justify-between text-xs text-muted">
                       <span>{t('reservation.summary.avgPerNight', { price: price.price_per_night })}</span>

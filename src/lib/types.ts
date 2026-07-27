@@ -60,6 +60,8 @@ export interface Booking {
 export interface PricingSettings {
   default_price: number
   min_nights: number
+  last_minute_discount_percent: number
+  last_minute_days: number
 }
 
 export interface DailyPrice {
@@ -116,6 +118,9 @@ export interface PriceCalculation {
   total_amount: number
   min_nights: number
   accommodation_total?: number
+  accommodation_total_before_discount?: number
+  discount_percent?: number
+  discount_amount?: number
   linen_fee?: number
   deposit_amount?: number
   daily_breakdown?: { date: string; price: number }[]

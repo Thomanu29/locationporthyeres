@@ -425,6 +425,8 @@ function toDateStr(year: number, month: number, day: number): string {
 function PricingSettingsPanel({ token, settings }: { token: string; settings: PricingSettings | null }) {
   const defaultPriceRef = useRef<HTMLInputElement>(null)
   const minNightsRef = useRef<HTMLInputElement>(null)
+  const lastMinutePercentRef = useRef<HTMLInputElement>(null)
+  const lastMinuteDaysRef = useRef<HTMLInputElement>(null)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
@@ -434,12 +436,14 @@ function PricingSettingsPanel({ token, settings }: { token: string; settings: Pr
     setSaved(false)
     const default_price = Number(defaultPriceRef.current?.value)
     const min_nights = Number(minNightsRef.current?.value)
+    const last_minute_discount_percent = Number(lastMinutePercentRef.current?.value)
+    const last_minute_days = Number(lastMinuteDaysRef.current?.value)
     setSaving(true)
     try {
       const res = await fetch('/api/admin/pricing-settings', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
-        body: JSON.stringify({ default_price, min_nights }),
+        body: JSON.stringify({ default_price, min_nights, last_minute_discount_percent, last_minute_days }),
       })
       if (!res.ok) {
         const data = await res.json().catch(() => null)
@@ -479,6 +483,34 @@ function PricingSettingsPanel({ token, settings }: { token: string; settings: Pr
           />
         </div>
       </div>
+
+      <h4 className="text-sm font-semibold mt-5 mb-1">Réduction dernière minute</h4>
+      <p className="text-xs text-muted mb-3">
+        Appliquée automatiquement quand la date d&apos;arrivée est proche. Mets 0% pour désactiver.
+      </p>
+      <div className="grid grid-cols-2 gap-3 max-w-md">
+        <div>
+          <label className="block text-xs text-muted mb-1">Réduction (%)</label>
+          <input
+            key={settings ? `lmp-${settings.last_minute_discount_percent}` : 'lmp-loading'}
+            ref={lastMinutePercentRef}
+            type="number"
+            defaultValue={settings?.last_minute_discount_percent ?? ''}
+            className="w-full border border-border rounded-lg px-3 py-2 text-sm"
+          />
+        </div>
+        <div>
+          <label className="block text-xs text-muted mb-1">Délai (jours avant arrivée)</label>
+          <input
+            key={settings ? `lmd-${settings.last_minute_days}` : 'lmd-loading'}
+            ref={lastMinuteDaysRef}
+            type="number"
+            defaultValue={settings?.last_minute_days ?? ''}
+            className="w-full border border-border rounded-lg px-3 py-2 text-sm"
+          />
+        </div>
+      </div>
+
       {error && <p className="text-red-600 text-sm mt-2">{error}</p>}
       {saved && <p className="text-green-600 text-sm mt-2">Enregistré</p>}
       <button
@@ -489,7 +521,7 @@ function PricingSettingsPanel({ token, settings }: { token: string; settings: Pr
         {saving ? 'Enregistrement...' : 'Enregistrer'}
       </button>
       <p className="text-xs text-muted mt-2">
-        Prix utilisé pour tout jour sans prix spécifique défini dans le calendrier ci-dessous.
+        Prix par défaut utilisé pour tout jour sans prix spécifique défini dans le calendrier ci-dessous.
       </p>
     </div>
   )

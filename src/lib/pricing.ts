@@ -10,7 +10,7 @@ const DEPOSIT_AMOUNT = 300
 export async function getPricingSettings(): Promise<PricingSettings> {
   const { data, error } = await supabaseAdmin
     .from('pricing_settings')
-    .select('default_price, min_nights')
+    .select('default_price, min_nights, last_minute_discount_percent, last_minute_days')
     .eq('id', 1)
     .single()
 
@@ -55,6 +55,22 @@ export function calculatePrice(
     current.setDate(current.getDate() + 1)
   }
 
+  const todayStr = formatLocalDate(new Date())
+  const today = new Date(todayStr)
+  const daysUntilCheckin = Math.round((start.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+  const discountPercent =
+    settings.last_minute_discount_percent > 0 &&
+    daysUntilCheckin >= 0 &&
+    daysUntilCheckin <= settings.last_minute_days
+      ? settings.last_minute_discount_percent
+      : 0
+
+  const accommodationTotalBeforeDiscount = accommodationTotal
+  if (discountPercent > 0) {
+    accommodationTotal = Math.round(accommodationTotal * (1 - discountPercent / 100) * 100) / 100
+  }
+  const discountAmount = Math.round((accommodationTotalBeforeDiscount - accommodationTotal) * 100) / 100
+
   const avgPricePerNight = nights > 0 ? Math.round(accommodationTotal / nights) : 0
   const linenFee = LINEN_FEE_PER_NIGHT * nights
   const touristTax = TOURIST_TAX_PER_PERSON_PER_NIGHT * guestCount * nights
@@ -69,6 +85,9 @@ export function calculatePrice(
     total_amount: totalAmount,
     min_nights: settings.min_nights,
     accommodation_total: accommodationTotal,
+    accommodation_total_before_discount: discountPercent > 0 ? accommodationTotalBeforeDiscount : undefined,
+    discount_percent: discountPercent,
+    discount_amount: discountPercent > 0 ? discountAmount : undefined,
     deposit_amount: DEPOSIT_AMOUNT,
     daily_breakdown: dailyBreakdown,
   }
