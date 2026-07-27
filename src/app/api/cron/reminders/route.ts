@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
-import { sendReminderEmail } from '@/lib/emails'
+import { sendReminderEmail, sendCronFailureAlert } from '@/lib/emails'
 import { addDays, format } from 'date-fns'
 
 export async function GET(req: NextRequest) {
@@ -24,18 +24,25 @@ export async function GET(req: NextRequest) {
     }
 
     const sent = []
+    const errors: string[] = []
     for (const booking of bookings) {
       try {
         await sendReminderEmail(booking.guest_name, booking.guest_email, booking.check_in)
         sent.push(booking.guest_email)
       } catch (err) {
         console.error(`Failed to send reminder to ${booking.guest_email}:`, err)
+        errors.push(`${booking.guest_email}: ${String(err)}`)
       }
+    }
+
+    if (errors.length > 0) {
+      await sendCronFailureAlert('reminders', errors).catch(() => {})
     }
 
     return NextResponse.json({ sent })
   } catch (error) {
     console.error('Reminders cron error:', error)
+    await sendCronFailureAlert('reminders', [String(error)]).catch(() => {})
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
   }
 }

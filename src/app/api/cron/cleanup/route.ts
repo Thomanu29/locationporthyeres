@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
+import { sendCronFailureAlert } from '@/lib/emails'
 
 export async function GET(req: NextRequest) {
   const auth = req.headers.get('authorization')
@@ -19,12 +20,14 @@ export async function GET(req: NextRequest) {
 
     if (error) {
       console.error('Cleanup error:', error)
+      await sendCronFailureAlert('cleanup', [error.message]).catch(() => {})
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
     return NextResponse.json({ deleted: expired?.length ?? 0 })
   } catch (error) {
     console.error('Cleanup cron error:', error)
+    await sendCronFailureAlert('cleanup', [String(error)]).catch(() => {})
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
   }
 }

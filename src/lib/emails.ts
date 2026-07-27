@@ -76,6 +76,27 @@ export async function sendConfirmationEmail(data: BookingEmailData) {
   })
 }
 
+export async function sendCronFailureAlert(cronName: string, errors: string[]) {
+  const items = errors.map((e) => `<li style="margin-bottom: 8px;">${escapeHtml(e)}</li>`).join('')
+
+  const html = `
+    <div style="font-family: system-ui, sans-serif; max-width: 600px; margin: 0 auto;">
+      <h2>⚠️ Erreur dans le cron "${escapeHtml(cronName)}"</h2>
+      <p>${errors.length} erreur${errors.length > 1 ? 's' : ''} rencontrée${errors.length > 1 ? 's' : ''} lors de la dernière exécution :</p>
+      <ul style="background: #fef2f2; border: 1px solid #fecaca; border-radius: 8px; padding: 16px 16px 16px 32px; color: #991b1b;">
+        ${items}
+      </ul>
+    </div>
+  `
+
+  await resend.emails.send({
+    from: 'Appartement du Port <noreply@locationporthyeres.fr>',
+    to: process.env.NOTIFICATION_EMAIL ?? 'locationporthyeres@gmail.com',
+    subject: `⚠️ Erreur cron "${cronName}" — ${errors.length} erreur${errors.length > 1 ? 's' : ''}`,
+    html,
+  })
+}
+
 export async function sendOwnerNotification(data: BookingEmailData) {
   const { guestName, guestEmail, checkIn, checkOut, nights, guestCount, totalAmount } = data
   const safeName = escapeHtml(guestName)

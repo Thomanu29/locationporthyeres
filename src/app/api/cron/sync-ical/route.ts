@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
 import { syncIcalSource } from '@/lib/ical'
-import { sendIcalConflictAlert } from '@/lib/emails'
+import { sendIcalConflictAlert, sendCronFailureAlert } from '@/lib/emails'
 import type { IcalSource } from '@/lib/types'
 
 export async function GET(req: NextRequest) {
@@ -51,9 +51,16 @@ export async function GET(req: NextRequest) {
       }
     }
 
+    const failed = results.filter((r) => 'error' in r)
+    if (failed.length > 0) {
+      const errors = failed.map((r) => `${r.name || r.platform}: ${(r as { error: string }).error}`)
+      await sendCronFailureAlert('sync-ical', errors).catch(() => {})
+    }
+
     return NextResponse.json({ synced: results })
   } catch (error) {
     console.error('iCal sync error:', error)
+    await sendCronFailureAlert('sync-ical', [String(error)]).catch(() => {})
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
   }
 }

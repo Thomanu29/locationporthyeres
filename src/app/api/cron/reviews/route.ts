@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabaseAdmin } from '@/lib/supabase'
-import { sendReviewRequestEmail } from '@/lib/emails'
+import { sendReviewRequestEmail, sendCronFailureAlert } from '@/lib/emails'
 import { subDays, format } from 'date-fns'
 
 export async function GET(req: NextRequest) {
@@ -24,18 +24,25 @@ export async function GET(req: NextRequest) {
     }
 
     const sent = []
+    const errors: string[] = []
     for (const booking of bookings) {
       try {
         await sendReviewRequestEmail(booking.guest_name, booking.guest_email, booking.review_token)
         sent.push(booking.guest_email)
       } catch (err) {
         console.error(`Failed to send review request to ${booking.guest_email}:`, err)
+        errors.push(`${booking.guest_email}: ${String(err)}`)
       }
+    }
+
+    if (errors.length > 0) {
+      await sendCronFailureAlert('reviews', errors).catch(() => {})
     }
 
     return NextResponse.json({ sent })
   } catch (error) {
     console.error('Review request cron error:', error)
+    await sendCronFailureAlert('reviews', [String(error)]).catch(() => {})
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
   }
 }

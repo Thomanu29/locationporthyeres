@@ -6,6 +6,7 @@ import {
   sendRcReminderEmail,
   sendRcCancellationEmail,
   sendRcOwnerAlert,
+  sendCronFailureAlert,
 } from '@/lib/emails'
 
 export async function GET(req: NextRequest) {
@@ -16,6 +17,7 @@ export async function GET(req: NextRequest) {
 
   const today = format(new Date(), 'yyyy-MM-dd')
   const results = { reminders: 0, cancelled: 0, ownerAlerts: 0 }
+  const errors: string[] = []
 
   try {
     // Action 1a: First reminder at J+7 (8 days before deadline)
@@ -38,6 +40,7 @@ export async function GET(req: NextRequest) {
         results.reminders++
       } catch (err) {
         console.error(`RC first reminder failed for ${booking.guest_email}:`, err)
+        errors.push(`First reminder for ${booking.guest_email}: ${String(err)}`)
       }
     }
 
@@ -56,6 +59,7 @@ export async function GET(req: NextRequest) {
         results.reminders++
       } catch (err) {
         console.error(`RC final reminder failed for ${booking.guest_email}:`, err)
+        errors.push(`Final reminder for ${booking.guest_email}: ${String(err)}`)
       }
     }
 
@@ -90,6 +94,7 @@ export async function GET(req: NextRequest) {
         results.cancelled++
       } catch (err) {
         console.error(`RC cancellation failed for ${booking.guest_email}:`, err)
+        errors.push(`Cancellation for ${booking.guest_email}: ${String(err)}`)
       }
     }
 
@@ -107,9 +112,14 @@ export async function GET(req: NextRequest) {
       results.ownerAlerts = pendingAlerts.length
     }
 
+    if (errors.length > 0) {
+      await sendCronFailureAlert('rc-check', errors).catch(() => {})
+    }
+
     return NextResponse.json({ ok: true, ...results })
   } catch (error) {
     console.error('RC check cron error:', error)
+    await sendCronFailureAlert('rc-check', [String(error)]).catch(() => {})
     return NextResponse.json({ error: 'Erreur serveur' }, { status: 500 })
   }
 }
