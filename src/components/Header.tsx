@@ -2,11 +2,9 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Anchor, Menu, X, Home } from 'lucide-react'
+import { Anchor, Menu, X } from 'lucide-react'
 import { useTranslation } from '@/lib/i18n'
 import LanguageSwitcher from './LanguageSwitcher'
-
-const AIRBNB_URL = 'https://www.airbnb.fr/rooms/1663808086920838841'
 
 export default function Header({ variant = 'transparent' }: { variant?: 'transparent' | 'solid' }) {
   const [menuOpen, setMenuOpen] = useState(false)
@@ -38,16 +36,6 @@ export default function Header({ variant = 'transparent' }: { variant?: 'transpa
             </Link>
           ))}
           <LanguageSwitcher variant={variant} />
-          <a
-            href={AIRBNB_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hidden sm:flex items-center gap-1.5 bg-[#FF385C] text-white font-semibold px-3 py-2 rounded-lg text-sm hover:bg-[#E31C5F] transition"
-            aria-label={t('header.airbnb')}
-          >
-            <Home className="w-4 h-4" fill="currentColor" />
-            Airbnb
-          </a>
           <Link
             href="/reservation"
             className={`font-semibold px-4 py-2 rounded-lg transition ${isTransparent ? 'bg-white text-primary hover:bg-gray-100' : 'bg-primary text-white hover:bg-primary-dark'}`}
@@ -79,16 +67,6 @@ export default function Header({ variant = 'transparent' }: { variant?: 'transpa
               {link.label}
             </Link>
           ))}
-          <a
-            href={AIRBNB_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            onClick={() => setMenuOpen(false)}
-            className="flex items-center gap-1.5 w-fit bg-[#FF385C] text-white font-semibold px-3 py-2 rounded-lg text-sm"
-          >
-            <Home className="w-4 h-4" fill="currentColor" />
-            Airbnb
-          </a>
         </div>
       </div>
     </header>

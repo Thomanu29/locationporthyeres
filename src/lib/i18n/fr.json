@@ -6,7 +6,6 @@
     "faq": "FAQ",
     "contact": "Contact",
     "book": "Réserver",
-    "airbnb": "Voir l'annonce sur Airbnb",
     "openMenu": "Ouvrir le menu",
     "closeMenu": "Fermer le menu"
   },
@@ -26,7 +25,8 @@
       "features": "T2 rénové 45m² · Loggia fermée · Parking sécurisé · Climatisation",
       "priceFrom": "À partir de {price}€ / nuit",
       "ctaBook": "Voir les disponibilités",
-      "ctaDiscover": "Découvrir"
+      "ctaDiscover": "Découvrir",
+      "airbnbLink": "Lien Airbnb"
     },
     "amenities": {
       "title": "Tout le confort pour vos vacances",

@@ -20,8 +20,11 @@ import {
   X,
   ChevronLeft,
   ChevronRight,
+  Home as HomeIcon,
 } from 'lucide-react'
 import { useTranslation } from '@/lib/i18n'
+
+const AIRBNB_URL = 'https://www.airbnb.fr/rooms/1663808086920838841'
 
 interface HomeContentProps {
   reviews: Array<{
@@ -129,6 +132,15 @@ export default function HomeContent({ reviews, galleryPhotos, heroPhoto, avgRati
               {t('home.hero.ctaDiscover')}
             </a>
           </div>
+          <a
+            href={AIRBNB_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-4 inline-flex items-center gap-1.5 bg-[#FF385C] text-white font-semibold px-4 py-2 rounded-lg text-sm hover:bg-[#E31C5F] transition"
+          >
+            <HomeIcon className="w-4 h-4" fill="currentColor" />
+            {t('home.hero.airbnbLink')}
+          </a>
         </div>
       </section>
 

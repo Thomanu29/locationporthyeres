@@ -6,7 +6,6 @@
     "faq": "FAQ",
     "contact": "Contact",
     "book": "Book now",
-    "airbnb": "View listing on Airbnb",
     "openMenu": "Open menu",
     "closeMenu": "Close menu"
   },
@@ -26,7 +25,8 @@
       "features": "Renovated 1BR 45m² · Enclosed loggia · Secure parking · Air conditioning",
       "priceFrom": "From {price}€ / night",
       "ctaBook": "Check availability",
-      "ctaDiscover": "Discover"
+      "ctaDiscover": "Discover",
+      "airbnbLink": "Airbnb link"
     },
     "amenities": {
       "title": "All the comfort for your holiday",
