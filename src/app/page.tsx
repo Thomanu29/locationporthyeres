@@ -8,7 +8,6 @@ export default async function HomePage() {
   const { data: reviews, error: reviewsError } = await supabase
     .from('reviews')
     .select('*')
-    .eq('is_visible', true)
     .order('created_at', { ascending: false })
 
   if (reviewsError) console.error('Failed to load reviews:', reviewsError)

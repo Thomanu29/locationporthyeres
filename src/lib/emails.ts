@@ -43,7 +43,7 @@ export async function sendConfirmationEmail(data: BookingEmailData) {
         <h3 style="margin-top: 24px;">Détail du paiement</h3>
         <table style="width: 100%; border-collapse: collapse; margin: 16px 0;">
           <tr><td style="padding: 8px;">${pricePerNight}€ × ${nights} nuits</td><td style="padding: 8px; text-align: right;">${pricePerNight * nights}€</td></tr>
-          <tr><td style="padding: 8px;">Frais de ménage</td><td style="padding: 8px; text-align: right;">${cleaningFee}€</td></tr>
+          <tr><td style="padding: 8px;">Frais de fonctionnement</td><td style="padding: 8px; text-align: right;">${cleaningFee}€</td></tr>
           <tr><td style="padding: 8px;">Taxe de séjour</td><td style="padding: 8px; text-align: right;">${touristTax.toFixed(2)}€</td></tr>
           <tr style="font-weight: bold; border-top: 2px solid #1e40af;"><td style="padding: 8px;">Total</td><td style="padding: 8px; text-align: right;">${totalAmount.toFixed(2)}€</td></tr>
         </table>

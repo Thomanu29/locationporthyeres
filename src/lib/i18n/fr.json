@@ -124,7 +124,7 @@
       "lastMinute": "-{percent}% dernière minute",
       "accommodation": "Hébergement ({nights} nuits)",
       "avgPerNight": "~{price}€/nuit en moyenne",
-      "cleaningFee": "Frais de ménage",
+      "cleaningFee": "Frais de fonctionnement",
       "linenFee": "Linge de lit & serviettes ({nights} nuits)",
       "touristTax": "Taxe de séjour",
       "total": "Total",

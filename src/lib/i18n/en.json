@@ -124,7 +124,7 @@
       "lastMinute": "-{percent}% last-minute deal",
       "accommodation": "Accommodation ({nights} nights)",
       "avgPerNight": "~{price}€/night on average",
-      "cleaningFee": "Cleaning fee",
+      "cleaningFee": "Operating fee",
       "linenFee": "Bed linen & towels ({nights} nights)",
       "touristTax": "Tourist tax",
       "total": "Total",

@@ -98,7 +98,7 @@ export async function POST(req: NextRequest) {
       {
         price_data: {
           currency: 'eur',
-          product_data: { name: 'Frais de ménage' },
+          product_data: { name: 'Frais de fonctionnement' },
           unit_amount: Math.round(price.cleaning_fee * 100),
         },
         quantity: 1,
