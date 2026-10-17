@@ -9,13 +9,24 @@ export async function GET(req: NextRequest) {
   const denied = verifyAdmin(req)
   if (denied) return denied
 
-  const { data, error } = await supabaseAdmin
-    .from('ical_sources')
-    .select('*')
-    .order('created_at', { ascending: true })
+  // Read-only: list the configured sources. Fetching the external calendars is the cron's job.
+  // ical_sources has no created_at column, so order by platform then name.
+  try {
+    const { data, error } = await supabaseAdmin
+      .from('ical_sources')
+      .select('*')
+      .order('platform', { ascending: true })
+      .order('name', { ascending: true, nullsFirst: false })
 
-  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
-  return NextResponse.json(data)
+    if (error) {
+      console.error('ical_sources read error:', error)
+      return NextResponse.json({ error: `Lecture des calendriers impossible : ${error.message}` }, { status: 500 })
+    }
+    return NextResponse.json(data ?? [])
+  } catch (err) {
+    console.error('ical_sources read error:', err)
+    return NextResponse.json({ error: 'Lecture des calendriers impossible' }, { status: 500 })
+  }
 }
 
 export async function POST(req: NextRequest) {

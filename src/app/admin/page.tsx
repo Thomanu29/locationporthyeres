@@ -140,17 +140,27 @@ export default function AdminPage() {
 function useFetch<T>(url: string, token: string) {
   const [data, setData] = useState<T | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   const refresh = useCallback(() => {
     setLoading(true)
     fetch(url, { headers: { Authorization: `Bearer ${token}` } })
-      .then((r) => r.json())
-      .then((d) => { setData(d); setLoading(false) })
-      .catch(() => setLoading(false))
+      .then(async (r) => {
+        const d = await r.json().catch(() => null)
+        // Never store an error payload as data: the tabs would crash calling .map() on it
+        if (!r.ok) {
+          setError((d && d.error) || `Erreur ${r.status}`)
+        } else {
+          setData(d)
+          setError(null)
+        }
+        setLoading(false)
+      })
+      .catch(() => { setError('Erreur réseau'); setLoading(false) })
   }, [url, token])
 
   useEffect(() => { refresh() }, [refresh])
-  return { data, loading, refresh }
+  return { data, loading, error, refresh }
 }
 
 function DashboardTab({ token }: { token: string }) {
@@ -1440,7 +1450,7 @@ const PLATFORMS = [
 ]
 
 function SyncTab({ token }: { token: string }) {
-  const { data: sources, loading, refresh } = useFetch<IcalSource[]>('/api/admin/ical-sources', token)
+  const { data: sources, loading, error, refresh } = useFetch<IcalSource[]>('/api/admin/ical-sources', token)
   const [form, setForm] = useState({ name: '', platform: 'airbnb', ical_url: '' })
   const [adding, setAdding] = useState(false)
   const [syncing, setSyncing] = useState<string | null>(null)
@@ -1551,7 +1561,9 @@ function SyncTab({ token }: { token: string }) {
       {/* Sources list */}
       {loading ? (
         <p className="text-center text-muted">Chargement...</p>
-      ) : !sources || sources.length === 0 ? (
+      ) : error ? (
+        <p className="text-center text-red-600">{error}</p>
+      ) : !Array.isArray(sources) || sources.length === 0 ? (
         <p className="text-center text-muted">Aucun calendrier externe configuré</p>
       ) : (
         <div className="bg-white rounded-xl border border-border overflow-x-auto">
