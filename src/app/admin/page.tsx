@@ -721,8 +721,84 @@ function PricingTab({ token }: { token: string }) {
   )
 }
 
+function formatRelative(iso: string, now: number): string {
+  const minutes = Math.floor((now - new Date(iso).getTime()) / 60000)
+  if (minutes < 1) return "à l'instant"
+  if (minutes < 60) return `il y a ${minutes} min`
+  const hours = Math.floor(minutes / 60)
+  if (hours < 24) return `il y a ${hours} h`
+  return `le ${new Date(iso).toLocaleString('fr-FR', { dateStyle: 'short', timeStyle: 'short' })}`
+}
+
+function latestSync(sources: IcalSource[] | null): string | null {
+  if (!Array.isArray(sources)) return null
+  return sources.reduce<string | null>(
+    (latest, s) => (s.last_sync && (!latest || s.last_sync > latest) ? s.last_sync : latest),
+    null,
+  )
+}
+
+function ResyncCalendarButton({ token, lastSync, onSynced }: {
+  token: string
+  lastSync: string | null
+  onSynced: () => void
+}) {
+  const [syncing, setSyncing] = useState(false)
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+  const [now, setNow] = useState(() => Date.now())
+
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 30000)
+    return () => clearInterval(id)
+  }, [])
+
+  const resync = async () => {
+    setSyncing(true)
+    setMessage(null)
+    try {
+      const res = await fetch('/api/admin/sync-ical', {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok || !data.success) {
+        setMessage({ type: 'error', text: data.error || 'Erreur lors de la synchronisation' })
+      } else {
+        setMessage({ type: 'success', text: 'Calendrier synchronisé ✓' })
+      }
+    } catch {
+      setMessage({ type: 'error', text: 'Erreur réseau lors de la synchronisation' })
+    }
+    setNow(Date.now())
+    setSyncing(false)
+    onSynced()
+  }
+
+  return (
+    <div className="bg-white rounded-xl p-6 border border-border flex flex-wrap items-center gap-3">
+      <button
+        onClick={resync}
+        disabled={syncing}
+        className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-dark transition disabled:opacity-50 flex items-center gap-2"
+      >
+        {syncing ? <Loader2 className="w-4 h-4 animate-spin" /> : <RefreshCw className="w-4 h-4" />}
+        {syncing ? 'Synchronisation...' : 'Resynchroniser le calendrier'}
+      </button>
+      <span className="text-sm text-muted">
+        Dernière sync : {lastSync ? formatRelative(lastSync, now) : 'jamais'}
+      </span>
+      {message && (
+        <span className={`text-sm font-medium ${message.type === 'success' ? 'text-green-600' : 'text-red-600'}`}>
+          {message.text}
+        </span>
+      )}
+    </div>
+  )
+}
+
 function BlockedTab({ token }: { token: string }) {
   const { data: blocked, loading, refresh } = useFetch<BlockedDate[]>('/api/admin/blocked', token)
+  const { data: sources, refresh: refreshSources } = useFetch<IcalSource[]>('/api/admin/ical-sources', token)
   const [form, setForm] = useState({ date_start: '', date_end: '', reason: '' })
 
   const addBlock = async () => {
@@ -745,6 +821,12 @@ function BlockedTab({ token }: { token: string }) {
 
   return (
     <div className="space-y-6">
+      <ResyncCalendarButton
+        token={token}
+        lastSync={latestSync(sources)}
+        onSynced={() => { refresh(); refreshSources() }}
+      />
+
       <div className="bg-white rounded-xl p-6 border border-border">
         <h3 className="font-semibold mb-4 flex items-center gap-2">
           <Plus className="w-4 h-4" /> Bloquer des dates
@@ -1410,6 +1492,8 @@ function SyncTab({ token }: { token: string }) {
 
   return (
     <div className="space-y-6">
+      <ResyncCalendarButton token={token} lastSync={latestSync(sources)} onSynced={refresh} />
+
       {/* Export URL */}
       <div className="bg-white rounded-xl p-6 border border-border">
         <h3 className="font-semibold mb-2">📤 URL d&apos;export (à coller dans Airbnb/Booking)</h3>
