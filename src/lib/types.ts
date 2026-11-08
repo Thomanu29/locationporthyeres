@@ -55,6 +55,20 @@ export interface Booking {
   rc_upload_token: string | null
   review_token: string | null
   review_submitted_at: string | null
+  promo_code?: string | null
+  discount_amount?: number | null
+}
+
+export interface PromoCode {
+  id: string
+  code: string
+  discount_percent: number
+  is_active: boolean
+  max_uses: number | null
+  current_uses: number
+  expires_at: string | null
+  description: string | null
+  created_at: string
 }
 
 export interface PricingSettings {

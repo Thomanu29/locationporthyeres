@@ -5,6 +5,8 @@ import { stripe } from '@/lib/stripe'
 import { getPricingSettings, getDailyPrices, calculatePrice } from '@/lib/pricing'
 import { getUnavailableDates } from '@/lib/ical'
 import { formatLocalDate } from '@/lib/date-utils'
+import { findUsablePromoCode, computePromoDiscount, claimPromoCodeUse, PROMO_ERRORS } from '@/lib/promo'
+import type { PromoCode } from '@/lib/types'
 
 const bookingSchema = z.object({
   guest_name: z.string().min(2),
@@ -16,6 +18,7 @@ const bookingSchema = z.object({
   notes: z.string().optional(),
   marketing_consent: z.boolean().optional(),
   rc_consent: z.boolean(),
+  promo_code: z.string().max(50).optional(),
 })
 
 export async function POST(req: NextRequest) {
@@ -57,6 +60,23 @@ export async function POST(req: NextRequest) {
       }, { status: 400 })
     }
 
+    // Never trust the client's discount: revalidate the code and recompute it here.
+    // The discount applies to the stay, not to the tourist tax.
+    let promo: PromoCode | null = null
+    let promoDiscount = 0
+    if (data.promo_code?.trim()) {
+      const result = await findUsablePromoCode(data.promo_code)
+      if (!result.ok) {
+        return NextResponse.json({
+          error: `Code promo : ${PROMO_ERRORS[result.reason]}`,
+          promo_error: result.reason,
+        }, { status: 409 })
+      }
+      promo = result.promo
+      promoDiscount = computePromoDiscount(price.total_amount - price.tourist_tax, promo.discount_percent)
+    }
+    const totalAmount = Math.round((price.total_amount - promoDiscount) * 100) / 100
+
     const { data: booking, error: insertError } = await supabaseAdmin
       .from('bookings')
       .insert({
@@ -69,12 +89,14 @@ export async function POST(req: NextRequest) {
         price_per_night: price.price_per_night,
         cleaning_fee: price.cleaning_fee,
         tourist_tax: price.tourist_tax,
-        total_amount: price.total_amount,
+        total_amount: totalAmount,
         deposit_amount: price.deposit_amount ?? 750,
         notes: data.notes ?? null,
         payment_status: 'pending',
         source: 'direct',
         status: 'confirmed',
+        // Only sent when a code is used, so bookings keep working before the promo migration runs
+        ...(promo ? { promo_code: promo.code, discount_amount: promoDiscount } : {}),
       })
       .select()
       .single()
@@ -86,12 +108,28 @@ export async function POST(req: NextRequest) {
 
     const accommodationTotal = price.accommodation_total ?? (price.price_per_night * price.nights)
 
+    // Spread the promo discount over the stay lines (accommodation first, then fees)
+    // so Stripe charges exactly totalAmount; the tourist tax line is never reduced.
+    let discountLeft = Math.round(promoDiscount * 100)
+    const discounted = (cents: number) => {
+      const off = Math.min(cents, discountLeft)
+      discountLeft -= off
+      return cents - off
+    }
+    const accommodationCents = discounted(Math.round(accommodationTotal * 100))
+    const cleaningCents = discounted(Math.round(price.cleaning_fee * 100))
+    const linenCents = discounted(Math.round((price.linen_fee ?? 0) * 100))
+
     const lineItems = [
       {
         price_data: {
           currency: 'eur',
-          product_data: { name: `Hébergement ${price.nights} nuits` },
-          unit_amount: Math.round(accommodationTotal * 100),
+          product_data: {
+            name: promo
+              ? `Hébergement ${price.nights} nuits (code ${promo.code} -${promo.discount_percent}%)`
+              : `Hébergement ${price.nights} nuits`,
+          },
+          unit_amount: accommodationCents,
         },
         quantity: 1,
       },
@@ -99,7 +137,7 @@ export async function POST(req: NextRequest) {
         price_data: {
           currency: 'eur',
           product_data: { name: 'Frais de fonctionnement' },
-          unit_amount: Math.round(price.cleaning_fee * 100),
+          unit_amount: cleaningCents,
         },
         quantity: 1,
       },
@@ -118,7 +156,7 @@ export async function POST(req: NextRequest) {
         price_data: {
           currency: 'eur',
           product_data: { name: `Linge de lit & serviettes (${price.nights} nuits)` },
-          unit_amount: Math.round((price.linen_fee ?? 0) * 100),
+          unit_amount: linenCents,
         },
         quantity: 1,
       })
@@ -137,11 +175,27 @@ export async function POST(req: NextRequest) {
         rc_consent: data.rc_consent ? 'true' : 'false',
         guest_name: data.guest_name,
         guest_phone: data.guest_phone ?? '',
+        promo_code: promo?.code ?? '',
       },
-      line_items: lineItems,
+      // A 100% promo code zeroes the stay lines; leave them out rather than send 0 € items
+      line_items: lineItems.filter((item) => item.price_data.unit_amount > 0),
       success_url: `https://locationporthyeres.fr/reservation/confirmation?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `https://locationporthyeres.fr/reservation`,
     })
+
+    // Count the use only once the Stripe session exists. The claim is atomic: if the code
+    // expired or ran out since validation, cancel this checkout instead of over-using it.
+    if (promo && !(await claimPromoCodeUse(promo.code))) {
+      await stripe.checkout.sessions.expire(session.id).catch(() => {})
+      await supabaseAdmin
+        .from('bookings')
+        .update({ payment_status: 'cancelled', status: 'cancelled', stripe_session_id: session.id })
+        .eq('id', booking.id)
+      return NextResponse.json({
+        error: 'Code promo : ce code vient d\'expirer ou d\'être épuisé. Retirez-le pour continuer.',
+        promo_error: 'exhausted',
+      }, { status: 409 })
+    }
 
     await supabaseAdmin
       .from('bookings')

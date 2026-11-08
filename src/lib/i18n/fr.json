@@ -157,6 +157,18 @@
       "calcError": "Erreur de calcul",
       "connectionError": "Erreur de connexion",
       "bookingError": "Erreur lors de la réservation"
+    },
+    "promo": {
+      "title": "Vous avez un code promo ?",
+      "placeholder": "Code promo",
+      "apply": "Appliquer",
+      "remove": "Retirer",
+      "applied": "Code {code} appliqué : -{percent}% → Nouveau total : {total}",
+      "summaryLine": "Code {code} (-{percent}%)",
+      "invalid": "Code invalide",
+      "expired": "Code expiré",
+      "exhausted": "Code épuisé",
+      "error": "Impossible de vérifier le code, réessayez."
     }
   },
   "faq": {

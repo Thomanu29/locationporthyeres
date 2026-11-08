@@ -26,12 +26,14 @@ import {
   Loader2,
   ChevronLeft,
   ChevronRight,
+  Percent,
+  Pencil,
 } from 'lucide-react'
-import type { Booking, DailyPrice, PricingSettings, BlockedDate, Review, Guest, Photo, BookingDocument, IcalSource } from '@/lib/types'
+import type { Booking, DailyPrice, PricingSettings, BlockedDate, Review, Guest, Photo, BookingDocument, IcalSource, PromoCode } from '@/lib/types'
 import MessagesTab from '@/components/admin/MessagesTab'
 import { RefreshCw } from 'lucide-react'
 
-type Tab = 'dashboard' | 'bookings' | 'guests' | 'pricing' | 'blocked' | 'reviews' | 'photos' | 'messages' | 'rc' | 'sync'
+type Tab = 'dashboard' | 'bookings' | 'guests' | 'pricing' | 'blocked' | 'reviews' | 'photos' | 'messages' | 'rc' | 'sync' | 'promo'
 
 export default function AdminPage() {
   const [authenticated, setAuthenticated] = useState(false)
@@ -87,6 +89,7 @@ export default function AdminPage() {
     { key: 'messages', label: 'Messages', icon: MessageSquare },
     { key: 'rc', label: 'RC Assurances', icon: Shield },
     { key: 'sync', label: 'Sync iCal', icon: RefreshCw },
+    { key: 'promo', label: 'Codes promo', icon: Percent },
   ]
 
   return (
@@ -132,6 +135,7 @@ export default function AdminPage() {
         {activeTab === 'messages' && <MessagesTab token={token} />}
         {activeTab === 'rc' && <RcTab token={token} />}
         {activeTab === 'sync' && <SyncTab token={token} />}
+        {activeTab === 'promo' && <PromoCodesTab token={token} />}
       </div>
     </div>
   )
@@ -1629,6 +1633,289 @@ function SyncTab({ token }: { token: string }) {
           </table>
         </div>
       )}
+    </div>
+  )
+}
+
+function toDateStrFromIso(iso: string): string {
+  const d = new Date(iso)
+  return toDateStr(d.getFullYear(), d.getMonth(), d.getDate())
+}
+
+const EMPTY_PROMO_FORM = {
+  code: '',
+  discount_percent: '',
+  max_uses: '',
+  expires_at: '',
+  description: '',
+  is_active: true,
+}
+
+function PromoCodesTab({ token }: { token: string }) {
+  const { data: codes, loading, error, refresh } = useFetch<PromoCode[]>('/api/admin/promo-codes', token)
+  const [form, setForm] = useState(EMPTY_PROMO_FORM)
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [saving, setSaving] = useState(false)
+  const [formError, setFormError] = useState<string | null>(null)
+  const [actionError, setActionError] = useState<string | null>(null)
+  const [now] = useState(() => Date.now())
+
+  const resetForm = () => {
+    setForm(EMPTY_PROMO_FORM)
+    setEditingId(null)
+    setFormError(null)
+  }
+
+  const startEdit = (c: PromoCode) => {
+    setEditingId(c.id)
+    setFormError(null)
+    setForm({
+      code: c.code,
+      discount_percent: String(c.discount_percent),
+      max_uses: c.max_uses === null ? '' : String(c.max_uses),
+      // expires_at is stored as end of day, local time: show the calendar day
+      expires_at: c.expires_at ? toDateStrFromIso(c.expires_at) : '',
+      description: c.description ?? '',
+      is_active: c.is_active,
+    })
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
+  const save = async () => {
+    const code = form.code.trim().toUpperCase()
+    const discount = Number(form.discount_percent)
+    const maxUses = form.max_uses.trim() === '' ? null : Number(form.max_uses)
+
+    if (!/^[A-Z0-9]{3,20}$/.test(code)) {
+      setFormError('Code : uniquement lettres et chiffres, 3 à 20 caractères')
+      return
+    }
+    if (!Number.isInteger(discount) || discount < 1 || discount > 100) {
+      setFormError('Réduction : nombre entier entre 1 et 100')
+      return
+    }
+    if (maxUses !== null && (!Number.isInteger(maxUses) || maxUses < 1)) {
+      setFormError("Nombre max d'utilisations : entier positif, ou vide pour illimité")
+      return
+    }
+
+    setSaving(true)
+    setFormError(null)
+    const res = await fetch(editingId ? `/api/admin/promo-codes/${editingId}` : '/api/admin/promo-codes', {
+      method: editingId ? 'PUT' : 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        code,
+        discount_percent: discount,
+        max_uses: maxUses,
+        // Valid until the end of the chosen day
+        expires_at: form.expires_at ? new Date(`${form.expires_at}T23:59:59`).toISOString() : null,
+        description: form.description.trim() || null,
+        is_active: form.is_active,
+      }),
+    }).catch(() => null)
+    setSaving(false)
+
+    if (!res || !res.ok) {
+      const data = res ? await res.json().catch(() => ({})) : {}
+      setFormError(data.error || "Erreur lors de l'enregistrement")
+      return
+    }
+    resetForm()
+    refresh()
+  }
+
+  const toggleActive = async (c: PromoCode) => {
+    setActionError(null)
+    const res = await fetch(`/api/admin/promo-codes/${c.id}`, {
+      method: 'PUT',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ is_active: !c.is_active }),
+    }).catch(() => null)
+    if (!res || !res.ok) setActionError('Impossible de modifier le statut')
+    refresh()
+  }
+
+  const remove = async (c: PromoCode) => {
+    if (!confirm(`Supprimer le code ${c.code} ?`)) return
+    setActionError(null)
+    const res = await fetch(`/api/admin/promo-codes/${c.id}`, {
+      method: 'DELETE',
+      headers: { Authorization: `Bearer ${token}` },
+    }).catch(() => null)
+    if (!res || !res.ok) setActionError('Impossible de supprimer le code')
+    if (editingId === c.id) resetForm()
+    refresh()
+  }
+
+  const isExpired = (c: PromoCode) => !!c.expires_at && new Date(c.expires_at).getTime() <= now
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-white rounded-xl p-6 border border-border">
+        <h3 className="font-semibold mb-4 flex items-center gap-2">
+          {editingId ? <Pencil className="w-4 h-4" /> : <Plus className="w-4 h-4" />}
+          {editingId ? 'Modifier le code' : 'Créer un code promo'}
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div>
+            <label className="block text-sm font-medium mb-1">Code *</label>
+            <input
+              value={form.code}
+              onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '') })}
+              placeholder="FLYERS10"
+              maxLength={20}
+              className="w-full border border-border rounded-lg px-3 py-2 text-sm uppercase"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Réduction (%) *</label>
+            <input
+              type="number"
+              min={1}
+              max={100}
+              value={form.discount_percent}
+              onChange={(e) => setForm({ ...form, discount_percent: e.target.value })}
+              placeholder="10"
+              className="w-full border border-border rounded-lg px-3 py-2 text-sm"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Utilisations max</label>
+            <input
+              type="number"
+              min={1}
+              value={form.max_uses}
+              onChange={(e) => setForm({ ...form, max_uses: e.target.value })}
+              placeholder="Illimité"
+              className="w-full border border-border rounded-lg px-3 py-2 text-sm"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium mb-1">Date d&apos;expiration</label>
+            <input
+              type="date"
+              value={form.expires_at}
+              onChange={(e) => setForm({ ...form, expires_at: e.target.value })}
+              className="w-full border border-border rounded-lg px-3 py-2 text-sm"
+            />
+          </div>
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium mb-1">Description interne</label>
+            <input
+              value={form.description}
+              onChange={(e) => setForm({ ...form, description: e.target.value })}
+              placeholder="Ex : Flyers distribution mai 2027"
+              className="w-full border border-border rounded-lg px-3 py-2 text-sm"
+            />
+          </div>
+        </div>
+        <label className="flex items-center gap-2 mt-3 text-sm cursor-pointer">
+          <input
+            type="checkbox"
+            checked={form.is_active}
+            onChange={(e) => setForm({ ...form, is_active: e.target.checked })}
+            className="rounded border-border"
+          />
+          Actif
+        </label>
+        {formError && <p className="text-sm text-red-600 mt-3">{formError}</p>}
+        <div className="flex gap-2 mt-4">
+          <button
+            onClick={save}
+            disabled={saving}
+            className="bg-primary text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-primary-dark transition disabled:opacity-50 flex items-center gap-2"
+          >
+            {saving && <Loader2 className="w-4 h-4 animate-spin" />}
+            {editingId ? 'Enregistrer' : 'Créer le code'}
+          </button>
+          {editingId && (
+            <button onClick={resetForm} className="px-4 py-2 rounded-lg text-sm border border-border hover:bg-surface">
+              Annuler
+            </button>
+          )}
+        </div>
+      </div>
+
+      {actionError && <p className="text-sm text-red-600">{actionError}</p>}
+
+      <div className="bg-white rounded-xl border border-border overflow-x-auto">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="bg-surface border-b border-border text-left">
+              <th className="p-3 font-medium">Code</th>
+              <th className="p-3 font-medium">Réduction</th>
+              <th className="p-3 font-medium">Statut</th>
+              <th className="p-3 font-medium">Utilisations</th>
+              <th className="p-3 font-medium">Expiration</th>
+              <th className="p-3 font-medium">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {loading ? (
+              <tr><td colSpan={6} className="p-4 text-center text-muted">Chargement...</td></tr>
+            ) : error ? (
+              <tr><td colSpan={6} className="p-4 text-center text-red-600">{error}</td></tr>
+            ) : !Array.isArray(codes) || codes.length === 0 ? (
+              <tr><td colSpan={6} className="p-4 text-center text-muted">Aucun code promo</td></tr>
+            ) : (
+              codes.map((c) => (
+                <tr key={c.id} className="border-b border-border hover:bg-surface">
+                  <td className="p-3">
+                    <div className="font-mono font-semibold">{c.code}</div>
+                    {c.description && <div className="text-xs text-muted">{c.description}</div>}
+                  </td>
+                  <td className="p-3">-{c.discount_percent}%</td>
+                  <td className="p-3">
+                    <span className={`text-xs px-2 py-1 rounded font-medium ${c.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+                      {c.is_active ? 'Actif' : 'Inactif'}
+                    </span>
+                  </td>
+                  <td className="p-3">
+                    {c.current_uses} / {c.max_uses ?? '∞'}
+                    {c.max_uses !== null && c.current_uses >= c.max_uses && (
+                      <span className="ml-2 text-xs text-red-600">épuisé</span>
+                    )}
+                  </td>
+                  <td className="p-3">
+                    {c.expires_at ? (
+                      <span className={isExpired(c) ? 'text-red-600' : ''}>
+                        {new Date(c.expires_at).toLocaleDateString('fr-FR')}
+                        {isExpired(c) && ' (expiré)'}
+                      </span>
+                    ) : (
+                      <span className="text-muted">Jamais</span>
+                    )}
+                  </td>
+                  <td className="p-3">
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => startEdit(c)}
+                        className="bg-blue-50 text-blue-700 px-3 py-1.5 rounded-lg text-xs hover:bg-blue-100 flex items-center gap-1"
+                      >
+                        <Pencil className="w-3 h-3" /> Modifier
+                      </button>
+                      <button
+                        onClick={() => toggleActive(c)}
+                        className="bg-gray-100 text-gray-700 px-3 py-1.5 rounded-lg text-xs hover:bg-gray-200"
+                      >
+                        {c.is_active ? 'Désactiver' : 'Activer'}
+                      </button>
+                      <button
+                        onClick={() => remove(c)}
+                        className="bg-red-50 text-red-600 p-1.5 rounded-lg hover:bg-red-100"
+                        aria-label={`Supprimer ${c.code}`}
+                      >
+                        <Trash2 className="w-3 h-3" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
     </div>
   )
 }

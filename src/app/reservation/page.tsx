@@ -53,6 +53,10 @@ export default function ReservationPage() {
   const [contractOpen, setContractOpen] = useState(false)
   const [contractAccepted, setContractAccepted] = useState(false)
   const [rcConsent, setRcConsent] = useState(false)
+  const [promoInput, setPromoInput] = useState('')
+  const [appliedPromo, setAppliedPromo] = useState<{ code: string; discount_percent: number } | null>(null)
+  const [promoError, setPromoError] = useState<string | null>(null)
+  const [promoLoading, setPromoLoading] = useState(false)
 
   const {
     register,
@@ -121,6 +125,50 @@ export default function ReservationPage() {
     fetchPrice()
   }, [fetchPrice])
 
+  // Same formula as the server (src/lib/promo.ts): the discount applies to the stay, not the tourist tax.
+  // The server recomputes it at checkout; this is only for display.
+  const promoDiscount = price && appliedPromo
+    ? Math.round((price.total_amount - price.tourist_tax) * appliedPromo.discount_percent) / 100
+    : 0
+  const finalTotal = price ? Math.round((price.total_amount - promoDiscount) * 100) / 100 : 0
+
+  const promoErrorMessage = (reason?: string) =>
+    reason === 'expired' || reason === 'exhausted' || reason === 'invalid'
+      ? t(`reservation.promo.${reason}`)
+      : t('reservation.promo.error')
+
+  const applyPromo = async () => {
+    const code = promoInput.trim()
+    if (!code || !price) return
+    setPromoLoading(true)
+    setPromoError(null)
+    try {
+      const res = await fetch('/api/promo/validate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ code, amount: price.total_amount - price.tourist_tax }),
+      })
+      const data = await res.json()
+      if (data.valid) {
+        setAppliedPromo({ code: data.code, discount_percent: data.discount_percent })
+        setPromoInput(data.code)
+      } else {
+        setAppliedPromo(null)
+        setPromoError(promoErrorMessage(data.reason))
+      }
+    } catch {
+      setPromoError(t('reservation.promo.error'))
+    } finally {
+      setPromoLoading(false)
+    }
+  }
+
+  const removePromo = () => {
+    setAppliedPromo(null)
+    setPromoError(null)
+    setPromoInput('')
+  }
+
   const onSubmit = async (formData: FormData) => {
     if (!dateRange?.from || !dateRange?.to || !price) return
 
@@ -140,6 +188,7 @@ export default function ReservationPage() {
           notes: formData.notes || undefined,
           marketing_consent: formData.marketing_consent || false,
           rc_consent: rcConsent,
+          promo_code: appliedPromo?.code,
         }),
       })
 
@@ -147,6 +196,10 @@ export default function ReservationPage() {
 
       if (data.checkout_url) {
         window.location.href = data.checkout_url
+      } else if (data.promo_error) {
+        // The code expired or ran out between validation and payment
+        setAppliedPromo(null)
+        setPromoError(promoErrorMessage(data.promo_error))
       } else {
         alert(data.error || t('reservation.validation.bookingError'))
       }
@@ -342,6 +395,61 @@ export default function ReservationPage() {
                   </span>
                 </label>
 
+                <div className="border border-border rounded-lg p-4">
+                  <label htmlFor="promo-code" className="flex items-center gap-2 text-sm font-medium mb-2">
+                    <Tag className="w-4 h-4" />
+                    {t('reservation.promo.title')}
+                  </label>
+                  <div className="flex gap-2">
+                    <input
+                      id="promo-code"
+                      type="text"
+                      value={promoInput}
+                      onChange={(e) => {
+                        setPromoInput(e.target.value.toUpperCase())
+                        setPromoError(null)
+                        if (appliedPromo) setAppliedPromo(null)
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') { e.preventDefault(); applyPromo() }
+                      }}
+                      placeholder={t('reservation.promo.placeholder')}
+                      autoComplete="off"
+                      maxLength={20}
+                      className="flex-1 min-w-0 border border-border rounded-lg px-4 py-2.5 uppercase focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                    {appliedPromo ? (
+                      <button
+                        type="button"
+                        onClick={removePromo}
+                        className="px-4 py-2.5 rounded-lg border border-border bg-white text-foreground text-sm font-medium hover:bg-surface transition"
+                      >
+                        {t('reservation.promo.remove')}
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={applyPromo}
+                        disabled={!promoInput.trim() || !price || promoLoading}
+                        className="px-4 py-2.5 rounded-lg bg-foreground text-white text-sm font-medium disabled:bg-gray-300 transition flex items-center gap-2"
+                      >
+                        {promoLoading && <Loader2 className="w-4 h-4 animate-spin" />}
+                        {t('reservation.promo.apply')}
+                      </button>
+                    )}
+                  </div>
+                  {appliedPromo && price && (
+                    <p className="text-sm text-green-700 mt-2">
+                      {t('reservation.promo.applied', {
+                        code: appliedPromo.code,
+                        percent: appliedPromo.discount_percent,
+                        total: `${finalTotal.toFixed(2)} €`,
+                      })}
+                    </p>
+                  )}
+                  {promoError && <p className="text-sm text-red-600 mt-2">{promoError}</p>}
+                </div>
+
                 <button
                   type="submit"
                   disabled={!dateRange?.from || !dateRange?.to || !price || submitting || !!priceError || !contractAccepted || !rcConsent}
@@ -355,7 +463,7 @@ export default function ReservationPage() {
                   ) : (
                     <>
                       <CreditCard className="w-5 h-5" />
-                      {t('reservation.form.payButton', { amount: price ? `${price.total_amount.toFixed(2)}€` : '' })}
+                      {t('reservation.form.payButton', { amount: price ? `${finalTotal.toFixed(2)}€` : '' })}
                     </>
                   )}
                 </button>
@@ -422,9 +530,15 @@ export default function ReservationPage() {
                       <span>{t('reservation.summary.touristTax')}</span>
                       <span>{price.tourist_tax.toFixed(2)}€</span>
                     </div>
+                    {appliedPromo && (
+                      <div className="flex justify-between text-green-700">
+                        <span>{t('reservation.promo.summaryLine', { code: appliedPromo.code, percent: appliedPromo.discount_percent })}</span>
+                        <span>-{promoDiscount.toFixed(2)}€</span>
+                      </div>
+                    )}
                     <div className="border-t border-border pt-3 flex justify-between font-bold text-lg">
                       <span>{t('reservation.summary.total')}</span>
-                      <span>{price.total_amount.toFixed(2)}€</span>
+                      <span>{finalTotal.toFixed(2)}€</span>
                     </div>
                     <div className="mt-3 pt-3 border-t border-border">
                       <div className="flex justify-between text-sm text-muted">
@@ -496,7 +610,7 @@ export default function ReservationPage() {
         checkIn={dateRange?.from ? format(dateRange.from, 'dd MMMM yyyy', { locale: frLocale }) : undefined}
         checkOut={dateRange?.to ? format(dateRange.to, 'dd MMMM yyyy', { locale: frLocale }) : undefined}
         guestCount={guestCount}
-        totalAmount={price?.total_amount}
+        totalAmount={price ? finalTotal : undefined}
         nights={nights}
       />
     </>
